@@ -91,6 +91,9 @@
 </div>
 
 <script>
+// Caminho base — funciona tanto local quanto no GitHub Pages
+const BASE = window.location.pathname.replace(/\/[^\/]*$/, '/');
+
 const JOGOS = [
   {
     id: 'trava-letras',
@@ -98,7 +101,7 @@ const JOGOS = [
     emoji: '🔤',
     desc: 'Diga palavras por categoria antes do tempo acabar',
     tags: 'letras palavras categorias multiplayer',
-    arquivo: '/trava-letras.html'
+    arquivo: 'trava-letras.html'
   },
   {
     id: 'termo-solo',
@@ -106,7 +109,7 @@ const JOGOS = [
     emoji: '🟩',
     desc: 'Descubra a palavra de 5 letras',
     tags: 'palavras letras termo wordle',
-    arquivo: '/termo-solo.html'
+    arquivo: 'termo-solo.html'
   },
   {
     id: 'termo-duel',
@@ -114,7 +117,7 @@ const JOGOS = [
     emoji: '⚔️',
     desc: 'Duelo de palavras entre 2 jogadores',
     tags: 'palavras letras termo wordle multiplayer',
-    arquivo: '/termo-duel.html'
+    arquivo: 'termo-duel.html'
   },
   {
     id: 'cores-setas',
@@ -122,7 +125,7 @@ const JOGOS = [
     emoji: '🌈',
     desc: 'Toque no círculo da cor certa — reflexo e atenção',
     tags: 'cores reflexo atenção velocidade',
-    arquivo: '/cores-setas.html'
+    arquivo: 'cores-setas.html'
   },
   {
     id: 'setas-4direcoes',
@@ -130,7 +133,7 @@ const JOGOS = [
     emoji: '➡️',
     desc: 'Acompanhe a seta por 2 minutos — foco e ritmo',
     tags: 'setas reflexo atenção ritmo',
-    arquivo: '/setas-4direcoes.html'
+    arquivo: 'setas-4direcoes.html'
   }
 ];
 
@@ -168,7 +171,7 @@ lista.addEventListener('click', e => {
   if (!jogo) return;
 
   tituloJogo.textContent = `${jogo.emoji} ${jogo.nome}`;
-  frame.src = jogo.arquivo;
+  frame.src = BASE + jogo.arquivo;
   player.classList.add('aberto');
 });
 
