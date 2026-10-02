@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Cores & Setas</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;font-family:'Segoe UI',system-ui,sans-serif;background:#0b0f1a;color:#fff}#app{width:100vw;height:100vh;height:100dvh;background:radial-gradient(circle at 50% 20%,#1a2340,#0b0f1a 80%)}#aviso-paisagem{display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;flex-direction:column;padding:30px;text-align:center;background:radial-gradient(circle at center,#1a2340,#0b0f1a 80%)}#aviso-paisagem .icone{font-size:70px;margin-bottom:20px;animation:girar 1.8s ease-in-out infinite}#aviso-paisagem h2{font-size:28px;margin-bottom:10px}#aviso-paisagem p{color:#8a92b4;font-size:17px;max-width:320px;line-height:1.5}@keyframes girar{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}.screen{display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:20px;opacity:0;transition:opacity .3s}.screen.active{display:flex;opacity:1;overflow-y:auto}.titulo{font-size:clamp(32px,7vw,56px);font-weight:700;text-align:center;background:linear-gradient(135deg,#4c8dff,#3ddc97,#ffc93c,#ff5468);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px}.subtitulo{font-size:clamp(16px,2.5vw,22px);color:#8a92b4;text-align:center;max-width:500px;margin-bottom:16px;line-height:1.3}.btn{font-size:clamp(18px,2.8vw,24px);font-weight:600;padding:12px 40px;border:0;border-radius:60px;background:#1d2340;color:#f4f6ff;cursor:pointer;transition:transform .1s,box-shadow .2s;box-shadow:0 6px 0 #0b0f1a;min-width:200px;margin:4px 0;touch-action:manipulation}.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #0b0f1a}.btn.primario{background:linear-gradient(135deg,#4c8dff,#3ddc97);color:#0b0f1a;box-shadow:0 6px 0 #1f5a3e}.dificuldades{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0 8px}.btn-dificuldade{font-size:16px;font-weight:700;padding:10px 18px;border:2px solid #ffffff18;border-radius:30px;background:#161b30;color:#8a92b4;cursor:pointer;transition:.15s}.btn-dificuldade.selecionado{color:#0b0f1a;border-color:transparent;box-shadow:0 0 18px #ffffff22}.btn-dificuldade.facil.selecionado{background:#3ddc97}.btn-dificuldade.medio.selecionado{background:#ffc93c}.btn-dificuldade.dificil.selecionado{background:#ff5468}.recorde{margin-top:12px;font-size:18px;background:#ffc93c1a;border:1px solid #ffc93c4d;padding:8px 24px;border-radius:40px;color:#ffc93c}.painel,.painel-fim{background:#161b30;border-radius:28px;padding:30px 28px;max-width:520px;width:100%;border:1px solid #ffffff0d;max-height:80vh;overflow-y:auto}.painel h2{font-size:24px;margin-bottom:14px}.painel p{color:#8a92b4;font-size:16px;line-height:1.6;margin-bottom:12px}.exemplo{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;justify-content:center}.exemplo-item{display:flex;align-items:center;gap:6px;background:#1d2340;padding:6px 14px 6px 8px;border-radius:40px;font-size:14px}.bolinha-ex{width:28px;height:28px;border-radius:50%}.btn-voltar{margin-top:20px}#screen-jogo{padding:10px 8px;flex-direction:row;align-items:stretch;justify-content:space-between;gap:8px}.area-central{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-width:0}.hud{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;justify-content:center}.hud-item{background:#161b30;border-radius:16px;padding:6px 18px;text-align:center;border:1px solid #ffffff0d}.hud-item .label{font-size:11px;color:#8a92b4;letter-spacing:1px;display:block}.hud-item .value{font-size:clamp(20px,4vw,32px);font-weight:700}.gold{color:#ffc93c}.btn-sair{width:36px;height:36px;border-radius:50%;border:1px solid #ffffff1f;background:#161b30;color:#8a92b4;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}.btn-sair:active{transform:scale(.9);background:#1d2340}.anel-seta{position:relative;width:min(52vh,42vw,360px);height:min(52vh,42vw,360px);display:flex;align-items:center;justify-content:center}.anel-svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}.anel-fundo{fill:none;stroke:#ffffff14;stroke-width:6}.anel-progresso{fill:none;stroke-width:6;stroke-linecap:round;filter:drop-shadow(0 0 8px #4c8dff80)}.seta-container{position:relative;z-index:2;width:82%;height:42%;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 25px #4c8dff73)}.seta{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;clip-path:polygon(0 25%,62% 25%,62% 0,100% 50%,62% 100%,62% 75%,0 75%);color:#0b0f1a;font-size:clamp(20px,3vw,34px);font-weight:900;letter-spacing:1px;text-transform:uppercase;text-align:center}.seta-texto{position:relative;z-index:3;white-space:nowrap}.seta-container.esquerda{transform:scaleX(-1)}.seta-container.esquerda .seta-texto{transform:scaleX(-1)}.seta-container.entrando{animation:entrada var(--dur,1000ms) cubic-bezier(.2,1.2,.4,1) forwards}@keyframes entrada{0%{opacity:0;transform:scale(.35)}100%{opacity:1;transform:scale(1)}}.seta-container.esquerda.entrando{animation:entradaE var(--dur,1000ms) cubic-bezier(.2,1.2,.4,1) forwards}@keyframes entradaE{0%{opacity:0;transform:scaleX(-1) scale(.35)}100%{opacity:1;transform:scaleX(-1) scale(1)}}.feedback-texto{position:absolute;top:2%;font-size:clamp(24px,5vw,36px);font-weight:700;pointer-events:none;opacity:0;text-shadow:0 0 30px currentColor;z-index:5}.acerto{color:#3ddc97}.erro{color:#ff5468}.mostrar{animation:pop .8s ease forwards}@keyframes pop{0%{opacity:0;transform:translateY(10px) scale(.8)}25%{opacity:1;transform:translateY(0) scale(1.1)}70%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}.particula{position:absolute;width:12px;height:12px;border-radius:50%;left:50%;top:50%;pointer-events:none;animation:explodir .7s ease-out forwards;z-index:10}@keyframes explodir{to{transform:translate(var(--px),var(--py)) scale(0);opacity:0}}.lado{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:0 4px;flex:0 0 auto;width:34vw;max-width:190px;min-width:120px}.legenda{font-size:14px;font-weight:600;color:#8a92b4;letter-spacing:2px;margin-bottom:4px}.grid-circulos{display:grid;grid-template-columns:1fr 1fr;gap:10%;justify-items:center;align-items:center;width:100%}.circulo-resposta{width:100%;aspect-ratio:1/1;max-width:100px;border-radius:50%;border:3px solid #ffffff26;cursor:pointer;transition:transform .1s,box-shadow .15s;touch-action:manipulation;box-shadow:0 4px 12px #0006}.circulo-resposta:active{transform:scale(.88)}.azul{background:radial-gradient(circle at 35% 35%,#7ab0ff,#4c8dff);box-shadow:0 0 20px #4c8dff40}.vermelho{background:radial-gradient(circle at 35% 35%,#ff8a9a,#ff5468);box-shadow:0 0 20px #ff546840}.amarelo{background:#ffc93c;box-shadow:0 0 20px #ffc93c40}.verde{background:radial-gradient(circle at 35% 35%,#7ae8b5,#3ddc97);box-shadow:0 0 20px #3ddc9740}.painel-fim{text-align:center;max-width:420px;padding:28px 24px}.painel-fim h2{font-size:28px;color:#ff5468;margin-bottom:4px}.novo-recorde{color:#ffc93c;font-size:18px;display:none;margin-bottom:12px}.novo-recorde.mostrar{display:block}.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.stat{background:#1d2340;border-radius:16px;padding:12px 6px}.stat .label{font-size:12px;color:#8a92b4}.stat .value{font-size:24px;font-weight:700;margin-top:2px}.stat.destaque .value{color:#ffc93c}.fim-botoes{display:flex;flex-direction:column;gap:12px;margin-top:8px}@media(orientation:portrait){#aviso-paisagem{display:flex}#app{display:none}}
+
+/* ===== LAYOUT NOVO — Cores & Setas ===== */
+:root{
+  --bg:#070b14;
+  --panel:#111827;
+  --panel2:#172033;
+  --text:#f7f9ff;
+  --muted:#8e9ab5;
+  --line:rgba(255,255,255,.09);
+}
+html,body{
+  background:var(--bg);
+}
+#app{
+  background:
+    radial-gradient(circle at 50% 0%,rgba(76,141,255,.18),transparent 34%),
+    radial-gradient(circle at 0% 100%,rgba(61,220,151,.09),transparent 30%),
+    radial-gradient(circle at 100% 100%,rgba(255,84,104,.08),transparent 30%),
+    #070b14;
+}
+.screen{
+  padding:clamp(14px,2vw,28px);
+}
+
+/* MENU */
+#screen-menu{
+  position:relative;
+  justify-content:center;
+  gap:0;
+}
+#screen-menu:before{
+  content:"";
+  position:absolute;
+  width:min(620px,85vw);
+  height:min(620px,85vw);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(76,141,255,.09),transparent 68%);
+  pointer-events:none;
+}
+#screen-menu > img{
+  width:clamp(64px,8vw,92px)!important;
+  height:clamp(64px,8vw,92px)!important;
+  margin-bottom:12px!important;
+  border:3px solid rgba(255,255,255,.12);
+  box-shadow:0 14px 45px rgba(0,0,0,.45)!important;
+  position:relative;
+}
+.titulo{
+  font-size:clamp(38px,6vw,66px);
+  line-height:1;
+  letter-spacing:-2px;
+  margin-bottom:12px;
+  position:relative;
+}
+.subtitulo{
+  max-width:560px;
+  margin-bottom:20px;
+  color:#aab4cc;
+}
+#screen-menu > div[style]{
+  margin-top:4px;
+  color:#687590!important;
+  font-size:11px!important;
+  letter-spacing:2px!important;
+}
+.dificuldades{
+  gap:8px;
+  margin:8px 0 18px;
+}
+.btn-dificuldade{
+  min-width:118px;
+  padding:11px 18px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(10px);
+}
+.btn-dificuldade.selecionado{
+  transform:translateY(-2px);
+}
+.btn{
+  min-width:260px;
+  padding:15px 36px;
+  border-radius:16px;
+  margin:5px 0;
+  box-shadow:0 7px 0 rgba(0,0,0,.28);
+}
+.btn.primario{
+  box-shadow:0 7px 0 #164f42,0 0 30px rgba(61,220,151,.12);
+}
+.recorde{
+  margin-top:18px;
+  background:rgba(255,201,60,.07);
+  border:1px solid rgba(255,201,60,.2);
+  padding:9px 20px;
+  font-size:14px;
+}
+
+/* INSTRUÇÕES / FIM */
+.painel,.painel-fim{
+  background:linear-gradient(145deg,rgba(23,32,51,.96),rgba(14,20,34,.96));
+  border:1px solid var(--line);
+  box-shadow:0 25px 70px rgba(0,0,0,.38);
+  backdrop-filter:blur(16px);
+}
+.painel h2,.painel-fim h2{
+  letter-spacing:-.5px;
+}
+
+/* JOGO */
+#screen-jogo{
+  padding:10px clamp(12px,2vw,28px);
+  gap:clamp(12px,2vw,30px);
+  background:
+    radial-gradient(circle at 50% 50%,rgba(76,141,255,.055),transparent 38%);
+}
+#screen-jogo .lado{
+  width:clamp(150px,18vw,240px);
+  max-width:240px;
+  min-width:150px;
+  padding:12px;
+  border-radius:26px;
+  background:linear-gradient(145deg,rgba(23,32,51,.82),rgba(13,19,31,.82));
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 18px 50px rgba(0,0,0,.25);
+}
+.legenda{
+  width:100%;
+  padding:9px 8px;
+  border-radius:12px;
+  background:rgba(255,255,255,.045);
+  color:#b5bfd4;
+  font-size:12px;
+  letter-spacing:1.5px;
+  text-align:center;
+}
+.grid-circulos{
+  gap:14px;
+  padding:8px 2px;
+}
+.circulo-resposta{
+  width:clamp(62px,7vw,92px);
+  max-width:none;
+  border:4px solid rgba(255,255,255,.12);
+  box-shadow:0 9px 20px rgba(0,0,0,.3);
+}
+.circulo-resposta:hover{
+  transform:translateY(-3px) scale(1.04);
+}
+.area-central{
+  gap:8px;
+}
+.hud{
+  width:100%;
+  max-width:650px;
+  gap:8px;
+  margin-bottom:4px;
+  flex-wrap:nowrap;
+}
+.hud-item{
+  flex:1;
+  min-width:82px;
+  padding:8px 10px;
+  border-radius:14px;
+  background:rgba(17,24,39,.88);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 8px 25px rgba(0,0,0,.2);
+}
+.hud-item .label{
+  font-size:9px;
+  color:#71809d;
+  letter-spacing:1.2px;
+}
+.hud-item .value{
+  font-size:clamp(18px,3vw,27px);
+  line-height:1.15;
+}
+.btn-sair{
+  flex:0 0 38px;
+  width:38px;
+  height:38px;
+  background:rgba(255,84,104,.08);
+  border-color:rgba(255,84,104,.2);
+  color:#ff7c8b;
+}
+.anel-seta{
+  width:min(58vh,46vw,430px);
+  height:min(58vh,46vw,430px);
+  margin:0 auto;
+}
+.anel-fundo{
+  stroke:rgba(255,255,255,.08);
+  stroke-width:5;
+}
+.anel-progresso{
+  stroke-width:7;
+  filter:drop-shadow(0 0 10px currentColor);
+}
+.seta-container{
+  width:84%;
+  height:40%;
+}
+.seta{
+  font-size:clamp(20px,3.2vw,38px);
+  box-shadow:0 15px 35px rgba(0,0,0,.25);
+}
+.feedback-texto{
+  top:0;
+  font-size:clamp(25px,4vw,40px);
+}
+
+/* FIM */
+.painel-fim{
+  width:min(440px,94vw);
+}
+.stats{
+  gap:10px;
+}
+.stat{
+  padding:14px 8px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.05);
+}
+.fim-botoes{
+  gap:8px;
+}
+
+/* TABLET / TELAS MENORES EM PAISAGEM */
+@media (max-height:620px) and (orientation:landscape){
+  #screen-jogo{padding:7px 12px}
+  #screen-jogo .lado{padding:8px;width:clamp(135px,17vw,190px);min-width:135px}
+  .grid-circulos{gap:9px}
+  .circulo-resposta{width:clamp(52px,8vh,72px)}
+  .anel-seta{width:min(62vh,42vw,330px);height:min(62vh,42vw,330px)}
+  .hud-item{padding:5px 8px}
+  .hud-item .label{font-size:8px}
+  .hud-item .value{font-size:19px}
+}
+
+/* TELAS GRANDES */
+@media (min-width:1100px) and (orientation:landscape){
+  #screen-jogo{padding-left:3vw;padding-right:3vw}
+  #screen-jogo .lado{width:clamp(190px,18vw,260px)}
+  .circulo-resposta{width:clamp(78px,7vw,105px)}
+}
+
+/* REDUZ MOVIMENTO */
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+</style></head>
+<body>
+<div id="aviso-paisagem"><div class="icone">📱</div><h2>Vire o celular</h2><p>Este jogo foi desenvolvido exclusivamente para jogar no modo paisagem.</p></div>
+<div id="app">
+<section id="screen-menu" class="screen active"><img src="data:image/png;base64,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

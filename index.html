@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Ativamente</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  header {
+    padding: 1.2rem 1rem .6rem;
+    position: sticky; top: 0;
+    background: #0f172a;
+    z-index: 5;
+  }
+  h1 { margin: 0 0 .6rem; font-size: 1.4rem; }
+  h1 span { color: #38bdf8; }
+  #busca {
+    width: 100%; padding: .75rem 1rem;
+    border-radius: 12px; border: 1px solid #1e293b;
+    background: #1e293b; color: #e2e8f0; font-size: 1rem;
+    outline: none;
+  }
+  #busca:focus { border-color: #38bdf8; }
+  #lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: .8rem;
+    padding: 1rem;
+  }
+  .card {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: transform .15s, background .15s;
+    border: 1px solid #334155;
+    display: flex; flex-direction: column; gap: .4rem;
+  }
+  .card:active { transform: scale(.96); background: #273449; }
+  .card .emoji { font-size: 2.2rem; }
+  .card .nome { font-weight: 600; font-size: .95rem; }
+  .card .desc { font-size: .78rem; color: #94a3b8; line-height: 1.3; }
+  .vazio { grid-column: 1/-1; text-align: center; color: #64748b; padding: 3rem 1rem; }
+
+  #player {
+    position: fixed; inset: 0;
+    background: #0f172a;
+    display: none; flex-direction: column;
+    z-index: 100;
+  }
+  #player.aberto { display: flex; }
+  #player header {
+    display: flex; align-items: center; gap: .8rem;
+    padding: .8rem 1rem;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+  }
+  #voltar {
+    background: #334155; border: 0; color: #e2e8f0;
+    width: 40px; height: 40px; border-radius: 10px;
+    font-size: 1.2rem; cursor: pointer;
+  }
+  #voltar:active { background: #475569; }
+  #tituloJogo { font-weight: 600; }
+  #frame { flex: 1; width: 100%; border: 0; background: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎓 Ati<span>vamente</span></h1>
+  <input id="busca" type="search" placeholder="Buscar jogo...">
+</header>
+
+<div id="lista"></div>
+
+<div id="player">
+  <header>
+    <button id="voltar">←</button>
+    <span id="tituloJogo"></span>
+  </header>
+  <iframe id="frame" allowfullscreen></iframe>
+</div>
+
+<script>
+const JOGOS = [
+  {
+    id: 'trava-letras',
+    nome: 'Trava Letras',
+    emoji: '🔤',
+    desc: 'Diga palavras por categoria antes do tempo acabar',
+    tags: 'letras palavras categorias multiplayer',
+    arquivo: 'jogos/trava-letras.html'
+  },
+  {
+    id: 'termo-solo',
+    nome: 'Termo Solo',
+    emoji: '🟩',
+    desc: 'Descubra a palavra de 5 letras',
+    tags: 'palavras letras termo wordle',
+    arquivo: 'jogos/termo-solo.html'
+  },
+  {
+    id: 'termo-duel',
+    nome: 'Termo Duel',
+    emoji: '⚔️',
+    desc: 'Duelo de palavras entre 2 jogadores',
+    tags: 'palavras letras termo wordle multiplayer',
+    arquivo: 'jogos/termo-duel.html'
+  },
+  {
+    id: 'cores-setas',
+    nome: 'Cores & Setas',
+    emoji: '🌈',
+    desc: 'Toque no círculo da cor certa — reflexo e atenção',
+    tags: 'cores reflexo atenção velocidade',
+    arquivo: 'jogos/cores-setas.html'
+  },
+  {
+    id: 'setas-4direcoes',
+    nome: 'Setas 4 Direções',
+    emoji: '➡️',
+    desc: 'Acompanhe a seta por 2 minutos — foco e ritmo',
+    tags: 'setas reflexo atenção ritmo',
+    arquivo: 'jogos/setas-4direcoes.html'
+  }
+];
+
+const lista = document.getElementById('lista');
+const busca = document.getElementById('busca');
+const player = document.getElementById('player');
+const frame = document.getElementById('frame');
+const tituloJogo = document.getElementById('tituloJogo');
+
+function renderizar(filtro = '') {
+  const termo = filtro.toLowerCase().trim();
+  const filtrados = JOGOS.filter(j => {
+    const alvo = (j.nome + ' ' + j.desc + ' ' + (j.tags || '')).toLowerCase();
+    return alvo.includes(termo);
+  });
+
+  if (!filtrados.length) {
+    lista.innerHTML = '<div class="vazio">Nenhum jogo encontrado 😕</div>';
+    return;
+  }
+
+  lista.innerHTML = filtrados.map(j => `
+    <div class="card" data-id="${j.id}">
+      <div class="emoji">${j.emoji}</div>
+      <div class="nome">${j.nome}</div>
+      <div class="desc">${j.desc}</div>
+    </div>
+  `).join('');
+}
+
+lista.addEventListener('click', e => {
+  const card = e.target.closest('.card');
+  if (!card) return;
+  const jogo = JOGOS.find(j => j.id === card.dataset.id);
+  if (!jogo) return;
+
+  tituloJogo.textContent = `${jogo.emoji} ${jogo.nome}`;
+  frame.src = jogo.arquivo;
+  player.classList.add('aberto');
+});
+
+document.getElementById('voltar').addEventListener('click', () => {
+  player.classList.remove('aberto');
+  frame.src = '';
+});
+
+busca.addEventListener('input', e => renderizar(e.target.value));
+
+renderizar();
+</script>
+</body>
+</html>
