@@ -134,4 +134,30 @@ $('ph').textContent='Fase '+fase;$('lose').classList.remove('show');lastSec=-1;i
 const rnd=()=>Math.floor(Math.random()*90000)+10000;
 function daily(){return +new Date().toISOString().slice(0,10).replace(/-/g,'')}
 function hint(){if(finished||!running||!solution)return;const nx=solution.find(s=>!placed[s.idx]);if(!nx)return;if(!canPlace(nx.cells,nx.r,nx.c)){info('Alguma peça está fora do lugar. Devolva uma peça e tente de novo.');return}hints++;nx.cells.forEach(([a,b])=>{const e=E(nx.r+a,nx.c+b);e.classList.add('hint');setTimeout(()=>e.classList.remove('hint'),1600)});sel={idx:nx.idx,cells:nx.cells,color:P[nx.idx].c};tray();info('Dica: a peça selecionada cabe onde está brilhando ('+hints+' usada'+(hints>1?'s':'')+')');tone(900,.1,'sine',0,.05);tone(1200,.12,'sine',.1,.05)}
-function confetti(){c
+function confetti(){const col=['#5eead4','#facc15','#f43f5e','#c084fc','#38bdf8','#4ade80'];for(let i=0;i<80;i++){const d=document.createElement('div');d.className='cf';d.style.left=Math.random()*100+'vw';d.style.background=col[i%6];d.style.setProperty('--x',(Math.random()*160-80)+'px');d.style.animationDuration=2+Math.random()*2+'s';d.style.animationDelay=Math.random()*.5+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),4800)}}
+function checkWin(){if(board.some(r=>r.some(v=>!v)))return;finished=true;running=false;const t=elapsed,tr=lvl==='train',st=tr?3:t<120000&&!hints?3:t<300000&&hints<2?2:1;if(fase>=unlocked(lvl))ls('gs_fase_'+lvl,fase+1);$('ov').querySelector('h2').textContent='Fase '+fase+' concluída!';
+const key='gs_best_'+lvl+'_'+fase,b=+ls(key)||0,nb=!tr&&(!b||t<b);if(nb)ls(key,t);const n=(+ls('gs_n')||0)+1;ls('gs_n',n);
+$('stars').textContent='★'.repeat(st)+'☆'.repeat(3-st);$('ft').textContent=tr?'🌱':fmt(t);$('best').textContent=tr?'Modo treino: sem pressa!':nb?'🏆 Novo recorde!':'Seu recorde: '+fmt(b);$('cnt').textContent=n+(n>1?' desafios resolvidos':' desafio resolvido')+(hints?' · '+hints+' dica'+(hints>1?'s':''):'');
+setTimeout(()=>{$('ov').classList.add('show');confetti();[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',i*.12,.08));buzz([30,40,30])},350)}
+function reset(){if(!solution)return;board=Array.from({length:N},()=>Array(N).fill(null));solution.length;placed={};sel=null;const arr=$('dice').children;const rng=mk(seed);let a=null;for(let t=0;t<400;t++){a=rollOnce(rng);if(a&&solve(a))break}a.forEach(d=>board[d.r][d.c]={t:'b'});paint();tray();finished=false;running=true;elapsed=0;info('Fase '+fase+' reiniciada')}
+const rotate=()=>{if(sel){sel.cells=rot(sel.cells);tray()}},flipP=()=>{if(sel){sel.cells=flip(sel.cells);tray()}};
+$('bHome').onclick=showHome;$('bReset').onclick=reset;$('bRot').onclick=rotate;$('bFlip').onclick=flipP;$('bHint').onclick=hint;
+$('bAgain').onclick=()=>startPhase(fase);$('bNext').onclick=()=>startPhase(fase+1);$('lAgain').onclick=()=>startPhase(fase);$('lMenu').onclick=()=>{$('lose').classList.remove('show');showHome()};
+const setSnd=()=>$('bSnd').textContent=$('hSnd').textContent=muted?'🔇':'🔊';
+$('bSnd').onclick=$('hSnd').onclick=()=>{muted=!muted;ls('gs_mute',muted?'1':'0');setSnd();tone(600,.08)};
+const LD={train:'Sem cronômetro e com dicas à vontade. Ideal para aprender.',classic:'5 minutos por fase. Acabou o tempo? A fase recomeça. Dicas custam estrelas.',master:'5 minutos por fase e sem dicas. Só para quem domina.'};
+function showHome(){running=false;$('ov').classList.remove('show');document.querySelectorAll('#lv button').forEach(b=>b.classList.toggle('on',b.dataset.l===lvl));$('ld').textContent=LD[lvl];
+const u=unlocked(lvl);if(fase>u)fase=u;$('hF').textContent='Fase '+fase;$('hPrev').disabled=fase<=1;$('hNext').disabled=fase>=u;
+$('hCont').style.display=solution&&!finished?'':'none';$('hStats').textContent='Fase atual · Treino '+unlocked('train')+' · Tempo '+unlocked('classic')+' · Mestre '+unlocked('master')+' · '+(ls('gs_n')||0)+' resolvidas';$('home').classList.add('show')}
+document.querySelectorAll('#lv button').forEach(b=>b.onclick=()=>{lvl=b.dataset.l;ls('gs_lvl',lvl);fase=unlocked(lvl);tone(500,.05);showHome()});
+$('hPlay').onclick=()=>startPhase(fase);$('hPrev').onclick=()=>{fase--;showHome()};$('hNext').onclick=()=>{fase++;showHome()};
+$('hCont').onclick=()=>{$('home').classList.remove('show');running=!finished;showT()};
+$('hHow').onclick=()=>$('how').classList.add('show');$('hOk').onclick=()=>$('how').classList.remove('show');$('bMenu').onclick=()=>{fase=unlocked(lvl);showHome()};
+const lg=$('lg');P.forEach((p,i)=>{const d=document.createElement('div');d.style.setProperty('--d',i*.09+'s');d.appendChild(mg(norm(p.s),p.c,11,2));lg.appendChild(d)});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='r')rotate();if(k==='f')flipP();if(k==='h')hint();});
+setSnd();
+board=Array.from({length:N},()=>Array(N).fill(null));placed={};buildBoard();paint();tray();fase=unlocked(lvl);timer();showHome();
+})();
+</script>
+</body>
+</html>
