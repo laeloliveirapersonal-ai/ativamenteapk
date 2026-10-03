@@ -135,6 +135,14 @@ const JOGOS = [
     desc: 'Acompanhe a seta por 2 minutos — foco e ritmo',
     tags: 'setas reflexo atenção ritmo',
     arquivo: 'setas-4direcoes.html'
+  },
+  {
+    id: 'genius-square',
+    nome: 'Genius Square',
+    emoji: '🧩',
+    desc: 'Encaixe as 9 peças sem sobrepor os bloqueadores',
+    tags: 'puzzle logica tetris raciocinio genius square',
+    arquivo: 'genius-square.html'
   }
 ];
 
@@ -184,6 +192,15 @@ document.getElementById('voltar').addEventListener('click', () => {
 busca.addEventListener('input', e => renderizar(e.target.value));
 
 renderizar();
+
+// Service Worker — funciona offline após a primeira visita
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('SW ativo'))
+      .catch(err => console.log('SW erro:', err));
+  });
+}
 </script>
 </body>
 </html>
