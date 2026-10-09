@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trava Letras</title>
+<style>
+:root{--bg:#1f2840;--board:#3a4560;--ring:#2b3550;--tile:#fff;--ink:#1f2840;--text:#fff;--y:#ffc933;--r:#e5484d;--g:#2fb67c;--b:#4d8cff;--mut:#8b96b3}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html{height:100%}
+body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:"Trebuchet MS",system-ui,sans-serif;overflow:hidden}
+button{font:inherit;cursor:pointer;border:0}
+#app{height:100dvh;display:flex;flex-direction:column}
+.setup{margin:auto;width:min(560px,94%);text-align:center;padding:12px;overflow:auto;max-height:100%}
+.logo{font-size:clamp(44px,10vw,80px);font-weight:800;line-height:.95;margin:0 0 6px;color:var(--y);text-shadow:0 5px 0 #b8860b}
+.setup p{color:var(--mut);margin:4px 0 14px;font-size:18px}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.chip{padding:10px 20px;border-radius:30px;background:var(--board);color:#fff;font-size:20px;font-weight:700;border:3px solid transparent}
+.chip.on{border-color:var(--y);background:#4a587a}
+.names input{width:100%;margin:4px 0;padding:10px 14px;font:inherit;font-size:20px;border-radius:14px;border:3px solid var(--board);background:var(--ring);color:#fff}
+.go{margin-top:14px;padding:14px 44px;font-size:28px;font-weight:800;border-radius:40px;background:var(--y);color:var(--ink);box-shadow:0 6px 0 #b8860b}
+.go:active{transform:translateY(4px);box-shadow:0 2px 0 #b8860b}
+.top{display:flex;gap:8px;padding:8px 10px;justify-content:center;flex-wrap:wrap}
+.pl{padding:6px 14px;border-radius:16px;background:var(--board);font-weight:700;font-size:18px;text-align:center;min-width:96px;border:3px solid transparent}
+.pl small{display:block;font-size:15px;color:var(--y);letter-spacing:2px;min-height:18px}
+.pl.cur{border-color:var(--y);background:#4a587a;transform:scale(1.06)}
+.pl.out{opacity:.35;text-decoration:line-through}
+.stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:14px;padding:4px 10px 10px;flex-wrap:wrap}
+.card{width:min(240px,90%);background:#fff;color:var(--ink);border-radius:18px;overflow:hidden;box-shadow:0 8px 0 rgba(0,0,0,.25);text-align:center}
+.card div{padding:14px 10px;font-weight:800;font-size:clamp(18px,3vw,26px);line-height:1.1}
+.card .c1{background:#fff}.card .c2{background:var(--b);color:#fff}
+.card.hard .c2{background:var(--r)}
+.side{display:flex;flex-direction:column;gap:12px;align-items:center;max-width:260px}
+.who{font-size:26px;font-weight:800;text-align:center}
+.who span{color:var(--y)}
+.btn2{padding:12px 20px;border-radius:30px;background:var(--r);color:#fff;font-weight:800;font-size:19px;box-shadow:0 5px 0 #8f2429}
+.btn2:active{transform:translateY(3px);box-shadow:0 2px 0 #8f2429}
+.btn2:disabled{opacity:.35}
+.btn3{padding:10px 18px;border-radius:30px;background:var(--board);color:#fff;font-weight:700;font-size:18px;box-shadow:0 4px 0 #00000040;border:2px solid #ffffff30}
+.btn3:active{transform:translateY(3px)}
+.wheel{position:relative;width:min(calc(100vw - 24px),calc(100vh - 150px));aspect-ratio:1;max-width:900px;flex:none;border-radius:50%;background:var(--ring);box-shadow:inset 0 0 0 4px #00000030}
+.wheel:before{content:"";position:absolute;inset:17%;border-radius:50%;background:var(--board)}
+.l{position:absolute;width:11.5%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:18%;background:var(--tile);color:var(--ink);font-weight:800;font-size:clamp(20px,5.4vmin,44px);display:flex;align-items:center;justify-content:center;box-shadow:0 5px 0 #9aa3bb}
+.l:active:not(:disabled){transform:translate(-50%,-50%) translateY(4px);box-shadow:0 1px 0 #9aa3bb}
+.l:disabled{background:#59627c;color:#7d86a0;box-shadow:none;transform:translate(-50%,-50%) scale(.82)}
+.mid{position:absolute;left:50%;top:50%;width:36%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:var(--y);color:var(--ink);font-weight:800;font-size:clamp(22px,6vmin,46px);box-shadow:0 8px 0 #b8860b;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1}
+.mid.run{background:conic-gradient(var(--g) var(--p,100%),#59627c 0);color:#fff;font-size:clamp(50px,16vmin,130px)}
+.mid.run.low{background:conic-gradient(var(--r) var(--p,100%),#59627c 0)}
+.mid i{position:absolute;inset:9%;border-radius:50%;background:var(--bg);z-index:0}
+.mid b{position:relative;z-index:1}
+.toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:var(--y);color:var(--ink);padding:10px 22px;border-radius:30px;font-weight:800;font-size:20px;z-index:5}
+.over{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:9}
+.modal{background:var(--board);border-radius:26px;padding:26px 30px;text-align:center;width:min(440px,92%)}
+.modal h2{margin:0 0 6px;font-size:36px;color:var(--y)}
+.modal p{font-size:22px;margin:6px 0 14px}
+button{touch-action:manipulation}
+@media (orientation:portrait){
+ .stage{flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;gap:8px}
+ .side{flex-direction:row;flex-wrap:wrap;max-width:100%;justify-content:center;gap:8px}
+ .side .row{width:100%;margin:0}
+ .card{width:170px}
+ .card div{padding:8px 6px;font-size:clamp(15px,4vw,24px)}
+ .who{font-size:clamp(18px,4.5vw,26px)}
+ .wheel{width:min(calc(100vw - 16px),calc(100dvh - 320px));min-width:250px}
+}
+@media (max-width:600px){
+ .pl{min-width:0;padding:4px 8px;font-size:14px}
+ .pl small{font-size:12px;min-height:14px}
+ .top{gap:5px;padding:6px}
+ .btn2,.btn3{font-size:16px;padding:9px 14px}
+ .chip{font-size:17px;padding:8px 14px}
+ .setup p{font-size:16px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const LETRAS="ABCDEFGHIJLMNOPRSTUV".split("");
+const FACIL=["Animais","Frutas","Cores","Comidas","Brinquedos","Nomes de menino","Nomes de menina","Partes do corpo","Esportes","Material escolar","Profissões","Cidades","Roupas","Meios de transporte","Desenhos animados","Objetos da cozinha","Coisas da casa","Instrumentos musicais","Bichos da fazenda","Lanches e doces"];
+const DIFICIL=["Países","Esportes olímpicos","Programas de TV","Atores e atrizes","Marcas","Legumes e verduras","Capitais","Rios e mares","Insetos","Filmes","Cantores e bandas","Ferramentas","Ossos e músculos","Plantas e flores","Times de futebol","Personagens de livros","Aves","Pratos típicos"];
+let TEMPO=10; const META=3;
+let S={fase:"setup",n:3,nomes:["","","","","",""],nivel:"facil",tempo:10};
+let P=[],cur=0,last=null,usadas=new Set(),cat=["",""],ini=0,t=TEMPO,iv=null,toast="",vencedor=-1,ac=null;
+
+function bip(f,d){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+function vib(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
+const vivos=()=>P.map((p,i)=>p.vivo?i:-1).filter(i=>i>=0);
+function proximo(de){let i=de;do{i=(i+1)%P.length}while(!P[i].vivo);return i}
+function sortear(){const l=S.nivel==="facil"?FACIL:DIFICIL;const a=l[Math.floor(Math.random()*l.length)];let b;do{b=l[Math.floor(Math.random()*l.length)]}while(b===a);cat=[a,b]}
+
+function novoJogo(){TEMPO=S.tempo;P=[];for(let i=0;i<S.n;i++)P.push({nome:(S.nomes[i]||"").trim()||"Jogador "+(i+1),cartas:0,vivo:true});ini=0;novaRodada()}
+function novaRodada(){clearInterval(iv);P.forEach(p=>p.vivo=true);usadas=new Set();last=null;sortear();cur=ini%P.length;ini++;S.fase="pronto";render()}
+function iniciar(){bip(660,.1);S.fase="jogo";reiniciaTimer();render()}
+function reiniciaTimer(){clearInterval(iv);t=TEMPO;iv=setInterval(()=>{t=Math.max(0,t-0.1);atualizaTimer();if(t<=0){clearInterval(iv);bip(180,.6);vib(300);eliminar(cur,true)}},100)}
+function atualizaTimer(){const m=document.getElementById("mid");if(!m)return;m.style.setProperty("--p",(t/TEMPO*100)+"%");m.classList.toggle("low",t<=3);m.querySelector("b").textContent=Math.ceil(t);const k=Math.ceil(t);if(Math.abs(t-k)<.05&&k<=3&&k>0)bip(880,.05)}
+function aviso(m){toast=m;render();setTimeout(()=>{toast="";render()},1800)}
+function letra(l){if(S.fase!=="jogo"||usadas.has(l))return;bip(520,.08);usadas.add(l);last=cur;if(usadas.size===LETRAS.length){usadas=new Set();aviso("Todas as letras usadas! Roda reiniciada")}cur=proximo(cur);reiniciaTimer();render()}
+function eliminar(i,porTempo){P[i].vivo=false;const v=vivos();if(porTempo)last=null;if(last===i)last=null;
+ if(v.length===1){fimRodada(v[0]);return}
+ if(i===cur){cur=proximo(i);reiniciaTimer()}
+ render()}
+function voltar(){clearInterval(iv);S.fase="setup";render()}
+function reembaralhar(){bip(440,.08);sortear();if(S.fase==="jogo")reiniciaTimer();render()}
+function contestar(){if(last!==null&&P[last].vivo){bip(200,.4);vib(200);eliminar(last,false)}}
+function fimRodada(w){clearInterval(iv);vencedor=w;P[w].cartas++;bip(784,.2);S.fase=P[w].cartas>=META?"fim":"rodada";render()}
+
+function render(){
+ const A=document.getElementById("app");
+ if(S.fase==="setup"){
+  A.innerHTML=`<div class="setup"><h1 class="logo">TRAVA<br>LETRAS</h1><p>Diga uma palavra da categoria e toque na primeira letra. Você tem ${S.tempo} segundos!</p>
+  <div class="row">${[2,3,4,5,6].map(n=>`<button class="chip ${S.n===n?"on":""}" onclick="S.n=${n};render()">${n} jogadores</button>`).join("")}</div>
+  <div class="row"><button class="chip ${S.nivel==="facil"?"on":""}" onclick="S.nivel='facil';render()">Categorias fáceis</button><button class="chip ${S.nivel==="dificil"?"on":""}" onclick="S.nivel='dificil';render()">Categorias difíceis</button></div>
+  <div class="row">${[10,20,30].map(n=>`<button class="chip ${S.tempo===n?"on":""}" onclick="S.tempo=${n};render()">${n} segundos</button>`).join("")}</div>
+  <div class="names">${Array.from({length:S.n},(_,i)=>`<input placeholder="Jogador ${i+1}" value="${S.nomes[i].replace(/"/g,"&quot;")}" oninput="S.nomes[${i}]=this.value">`).join("")}</div>
+  <button class="go" onclick="novoJogo()">Jogar</button></div>`;return}
+ const jog=S.fase==="jogo",pronto=S.fase==="pronto";
+ const top=P.map((p,i)=>`<div class="pl ${i===cur&&(jog||pronto)?"cur":""} ${p.vivo?"":"out"}">${p.nome}<small>${"★".repeat(p.cartas)}${"☆".repeat(META-p.cartas)}</small></div>`).join("");
+ const letras=LETRAS.map((l,i)=>{const a=i/LETRAS.length*2*Math.PI;return `<button class="l" style="left:${50+43*Math.sin(a)}%;top:${50-43*Math.cos(a)}%" ${jog&&!usadas.has(l)?"":"disabled"} onclick="letra('${l}')">${l}</button>`}).join("");
+ const mid=jog?`<div class="mid run ${t<=3?"low":""}" id="mid" style="--p:${t/TEMPO*100}%"><i></i><b>${Math.ceil(t)}</b></div>`:`<button class="mid" onclick="iniciar()">${pronto?"Começar":"…"}</button>`;
+ let modal="";
+ if(S.fase==="rodada")modal=`<div class="over"><div class="modal"><h2>${P[vencedor].nome} ganhou a carta!</h2><p>${"★".repeat(P[vencedor].cartas)} (${P[vencedor].cartas} de ${META})</p><button class="go" onclick="novaRodada()">Próxima rodada</button></div></div>`;
+ if(S.fase==="fim")modal=`<div class="over"><div class="modal"><h2>🏆 ${P[vencedor].nome} venceu!</h2><p>Juntou ${META} cartas primeiro.</p><button class="go" onclick="S.fase='setup';render()">Jogar de novo</button></div></div>`;
+ A.innerHTML=`<div class="top">${top}</div><div class="stage">
+  <div class="side"><div class="row" style="margin:0"><button class="btn3" onclick="voltar()">← Voltar</button><button class="btn3" ${jog||pronto?"":"disabled"} onclick="reembaralhar()">🔀 Trocar tema</button></div><div class="card ${S.nivel==="dificil"?"hard":""}"><div class="c1">${cat[0]}</div><div class="c2">${cat[1]}</div></div>
+  <div class="who">${jog||pronto?`Vez de <span>${P[cur].nome}</span>`:""}</div>
+  <button class="btn2" ${jog&&last!==null&&P[last]&&P[last].vivo?"":"disabled"} onclick="contestar()">✋ Resposta errada</button></div>
+  <div class="wheel">${letras}${mid}</div></div>${toast?`<div class="toast">${toast}</div>`:""}${modal}`;
+}
+render();
+</script>
+</body>
+</html>

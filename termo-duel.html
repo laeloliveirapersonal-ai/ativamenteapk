@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Termo Duel</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+.app{max-width:620px;margin:auto;padding:12px}.hero{text-align:center;margin:6px 0 12px}h1{margin:0;font-size:29px}.sub{color:#94a3b8;font-size:13px}
+.card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:12px;margin-bottom:10px}
+label{display:block;font-weight:900;margin-bottom:6px}.muted,.legend{color:#94a3b8;font-size:12px}
+input{width:100%;padding:11px;border-radius:9px;border:1px solid #475569;background:#0f172a;color:#fff;font-size:20px;letter-spacing:3px;text-align:center;text-transform:uppercase}
+button{width:100%;padding:11px;border:0;border-radius:9px;background:#22c55e;color:#052e16;font-weight:900;font-size:14px;cursor:pointer;margin-top:6px}.secondary{background:#475569;color:#fff}
+.hidden{display:none}.section{font-size:16px;font-weight:900}.topline{display:flex;justify-content:space-between;align-items:center}.badge{background:#334155;padding:4px 8px;border-radius:99px;font-size:11px}
+.rows{display:grid;gap:5px;margin-top:8px}.row{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}.cell{aspect-ratio:1;display:grid;place-items:center;border:2px solid #475569;border-radius:7px;background:#0f172a;font-size:21px;font-weight:900}.green{background:#16a34a;border-color:#16a34a}.yellow{background:#ca8a04;border-color:#ca8a04}.gray{background:#475569;border-color:#475569}
+.keyboard{max-width:410px;margin:4px auto 0}.keyrow{display:flex;justify-content:center;gap:4px;margin:4px 0}.key{width:34px;height:38px;padding:0;margin:0;background:#475569;color:#fff;border-radius:6px;font-size:14px}.key.wide{width:48px}.key.used{opacity:.45}.key.yellow{background:#ca8a04}.key.green{background:#16a34a}.key.gray{background:#334155}.key.green{background:#16a34a!important;color:#fff}.key.yellow{background:#ca8a04!important;color:#fff}.key.used{background:#334155!important;color:#94a3b8}
+.answer{background:#0f172a;border-radius:10px;padding:9px;margin-top:8px;text-align:center}.seq{font-size:19px;margin:3px}.msg{text-align:center;font-weight:800;min-height:20px;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hero"><h1>⚔️ TERMO DUEL</h1><div class="sub">5 letras • tentativas ilimitadas</div></div>
+
+<section id="setup" class="card">
+<label>🔐 Sua palavra secreta</label>
+<input id="secret" maxlength="5" placeholder="ABCDE" autocomplete="off">
+<button onclick="start()">Começar duelo</button>
+</section>
+
+<section id="game" class="hidden">
+<div class="card">
+<div class="topline"><div class="section">🟢 MINHAS TENTATIVAS</div><span class="badge" id="myCount">0</span></div>
+<div class="muted">Monte uma palavra usando o teclado e fale para o adversário.</div>
+<div id="myRows" class="rows"></div>
+</div>
+
+<div class="card">
+<div class="section">⌨️ Teclado</div>
+<div id="keyboard" class="keyboard"></div>
+<div id="current" class="row" style="margin-top:8px"></div>
+<button onclick="submitMy()">Registrar tentativa</button>
+<button class="secondary" onclick="clearCurrent()">Limpar</button>
+</div>
+
+<div class="card">
+<div class="topline"><div class="section">🔴 TENTATIVAS DO ADVERSÁRIO</div><span class="badge" id="enemyCount">0</span></div>
+<div class="muted">Digite o que o adversário falou. O jogo calcula automaticamente.</div>
+<input id="enemyInput" maxlength="5" placeholder="PALAVRA" autocomplete="off" style="margin-top:7px">
+<button onclick="addEnemy()">🔎 Calcular resposta</button>
+<div id="enemyRows" class="rows"></div>
+<div id="answer" class="answer hidden">
+<b>📢 Diga ao adversário:</b>
+<div id="answerText"></div><div id="answerSeq" class="seq"></div>
+<button onclick="copyAnswer()">📋 Copiar</button>
+</div>
+</div>
+
+<div id="myEditor" class="card hidden">
+<div class="section">🟢 Resultado da sua tentativa</div>
+<div class="muted">Toque nas letras para alternar ⬜ → 🟨 → 🟩 conforme o adversário responder.</div>
+<div id="editRow" class="row" style="margin-top:8px"></div>
+<button onclick="saveMy()">Salvar resultado</button>
+</div>
+
+<div id="msg" class="msg"></div>
+<button class="secondary" onclick="location.reload()">Novo duelo</button>
+</section>
+</div>
+
+<script>
+const letters=["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+let secret="",current="",myAttempts=[],enemyAttempts=[],pending=null,lastAnswer="";let keyState={};
+const names={gray:"cinza",yellow:"amarela",green:"verde"},icons={gray:"⬜",yellow:"🟨",green:"🟩"},states=["gray","yellow","green"];
+
+function norm(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z]/g,"")}
+function start(){
+ secret=norm(document.getElementById("secret").value);
+ if(secret.length!==5){alert("A palavra secreta precisa ter exatamente 5 letras.");return}
+ document.getElementById("setup").classList.add("hidden");document.getElementById("game").classList.remove("hidden");
+ buildKeyboard();render();setMsg("Monte sua primeira tentativa.");
+}
+function updateKeyboard(){
+ document.querySelectorAll(".key").forEach(b=>{
+  const s=keyState[b.textContent]||"";
+  b.className="key "+(s||"");
+ });
+}
+function improveKey(ch,state){
+ const rank={gray:1,yellow:2,green:3};
+ if(!keyState[ch] || rank[state]>rank[keyState[ch]]) keyState[ch]=state;
+ updateKeyboard();
+}
+function applyKeyboard(result,word){
+ result.forEach((r,i)=>improveKey(word[i],r));
+}
+function buildKeyboard(){
+ const k=document.getElementById("keyboard");k.innerHTML="";
+ letters.forEach((line,ri)=>{const row=document.createElement("div");row.className="keyrow";
+ [...line].forEach(ch=>{const b=document.createElement("button");b.className="key";b.textContent=ch;b.onclick=()=>press(ch);row.appendChild(b)});k.appendChild(row)})
+}
+function press(ch){if(current.length>=5)return;current+=ch;renderCurrent()}
+function backspace(){current=current.slice(0,-1);renderCurrent()}
+function clearCurrent(){current="";renderCurrent()}
+function renderCurrent(){
+ const el=document.getElementById("current");el.innerHTML="";
+ for(let i=0;i<5;i++){const c=document.createElement("div");c.className="cell";c.textContent=current[i]||"";el.appendChild(c)}
+}
+function submitMy(){
+ if(current.length!==5){setMsg("Escolha exatamente 5 letras.");return}
+ pending={word:current,result:Array(5).fill("gray")};current="";
+ document.getElementById("myEditor").classList.remove("hidden");renderEdit();setMsg("Fale a palavra ao adversário e marque o resultado que ele informar.");
+}
+function renderEdit(){
+ const el=document.getElementById("editRow");el.innerHTML="";
+ pending.word.split("").forEach((ch,i)=>{const c=document.createElement("div");c.className="cell "+pending.result[i];c.textContent=ch;c.onclick=()=>cycle(i);el.appendChild(c)})
+}
+function cycle(i){let n=states.indexOf(pending.result[i]);pending.result[i]=states[(n+1)%3];renderEdit()}
+function saveMy(){
+ myAttempts.push(pending);applyKeyboard(pending.result,pending.word);pending=null;document.getElementById("myEditor").classList.add("hidden");render();renderCurrent();setMsg("Resultado salvo.");
+}
+function evaluate(g,t){
+ let r=Array(5).fill("gray"),used=Array(5).fill(false);
+ for(let i=0;i<5;i++)if(g[i]===t[i]){r[i]="green";used[i]=true}
+ for(let i=0;i<5;i++)if(r[i]!=="green")for(let j=0;j<5;j++)if(!used[j]&&g[i]===t[j]){r[i]="yellow";used[j]=true;break}
+ return r;
+}
+function addEnemy(){
+ const w=norm(document.getElementById("enemyInput").value);
+ if(w.length!==5){setMsg("Digite exatamente 5 letras.");return}
+ const result=evaluate(w,secret);enemyAttempts.push({word:w,result});document.getElementById("enemyInput").value="";
+ render();showAnswer(w,result);setMsg(result.every(x=>x==="green")?"🏆 O adversário descobriu sua palavra!":"Resposta calculada.");
+}
+function draw(id,arr){
+ const el=document.getElementById(id);el.innerHTML="";
+ arr.forEach(item=>{const row=document.createElement("div");row.className="row";item.word.split("").forEach((ch,i)=>{const c=document.createElement("div");c.className="cell "+item.result[i];c.textContent=ch;row.appendChild(c)});el.appendChild(row)})
+}
+function render(){draw("myRows",myAttempts);draw("enemyRows",enemyAttempts);document.getElementById("myCount").textContent=myAttempts.length;document.getElementById("enemyCount").textContent=enemyAttempts.length}
+function showAnswer(w,r){lastAnswer=r.map((x,i)=>w[i]+" "+names[x]).join(" • ");document.getElementById("answerText").textContent="“"+lastAnswer+"”";document.getElementById("answerSeq").textContent=r.map(x=>icons[x]).join(" ");document.getElementById("answer").classList.remove("hidden")}
+async function copyAnswer(){try{await navigator.clipboard.writeText("Resultado: "+lastAnswer);setMsg("📋 Copiado!")}catch(e){setMsg("Não foi possível copiar.")}}
+function setMsg(t){document.getElementById("msg").textContent=t}
+</script>
+</body>
+</html>

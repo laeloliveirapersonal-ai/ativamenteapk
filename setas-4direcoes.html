@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Setas - 4 Direções</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;font-family:'Segoe UI',system-ui,sans-serif;background:#0b0f1a;color:#fff}
+#app{width:100vw;height:100vh;height:100dvh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 20%,#1a2340,#0b0f1a 80%)}
+.screen{display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:24px;text-align:center}
+.screen.active{display:flex}
+.titulo{font-size:clamp(28px,6vw,48px);font-weight:700;background:linear-gradient(135deg,#4c8dff,#3ddc97,#ffc93c,#ff5468);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:10px}
+.subtitulo{font-size:clamp(15px,2.4vw,20px);color:#8a92b4;max-width:480px;line-height:1.5;margin-bottom:30px}
+.btn{font-size:clamp(18px,2.8vw,24px);font-weight:600;padding:16px 44px;border:0;border-radius:60px;background:linear-gradient(135deg,#4c8dff,#3ddc97);color:#0b0f1a;cursor:pointer;box-shadow:0 6px 0 #1f5a3e;transition:transform .1s,box-shadow .2s;touch-action:manipulation}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #1f5a3e}
+.cronometro{font-size:clamp(20px,3vw,28px);font-weight:700;background:#161b30;border:1px solid #ffffff14;border-radius:40px;padding:8px 28px;margin-bottom:36px;letter-spacing:1px}
+.palco{position:relative;width:min(60vh,70vw,420px);height:min(60vh,70vw,420px);display:flex;align-items:center;justify-content:center}
+.anel-svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.anel-fundo{fill:none;stroke:#ffffff14;stroke-width:5}
+.anel-progresso{fill:none;stroke:#4c8dff;stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 0 8px #4c8dff80);transition:stroke .2s}
+.seta-wrap{position:relative;z-index:2;width:62%;height:62%;display:flex;align-items:center;justify-content:center;transition:transform .35s cubic-bezier(.2,1.1,.4,1)}
+.seta-wrap svg{width:100%;height:100%;filter:drop-shadow(0 0 22px #4c8dff90)}
+.seta-wrap.trocando{animation:pulso .35s ease}
+@keyframes pulso{0%{transform:scale(.7) rotate(var(--rot))}60%{transform:scale(1.12) rotate(var(--rot))}100%{transform:scale(1) rotate(var(--rot))}}
+.btn-sair{position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:50%;border:1px solid #ffffff1f;background:#161b30;color:#8a92b4;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;z-index:5}
+.btn-sair:active{transform:scale(.9);background:#1d2340}
+.fim h2{font-size:clamp(30px,5vw,44px);margin-bottom:12px;color:#3ddc97}
+.fim p{color:#8a92b4;font-size:18px;margin-bottom:30px}
+.dificuldades{display:flex;flex-direction:column;gap:16px;width:100%;max-width:280px}
+.btn-dif{display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.2}
+.btn-dif span{font-size:13px;font-weight:500;opacity:.75}
+</style>
+</head>
+<body>
+<div id="app">
+
+<section id="screen-inicio" class="screen active">
+<h1 class="titulo">➡️ Setas - 4 Direções</h1>
+<p class="subtitulo">A seta vai apontar para cima, baixo, esquerda ou direita, durante 2 minutos. Escolha a dificuldade:</p>
+<div class="dificuldades">
+<button class="btn btn-dif" data-cadencia="20">FÁCIL<span>20s por seta</span></button>
+<button class="btn btn-dif" data-cadencia="10">MÉDIO<span>10s por seta</span></button>
+<button class="btn btn-dif" data-cadencia="5">DIFÍCIL<span>5s por seta</span></button>
+</div>
+</section>
+
+<section id="screen-jogo" class="screen" style="position:relative">
+<button class="btn-sair" id="btn-sair-jogo" aria-label="Voltar">✕</button>
+<div class="cronometro" id="cronometro">2:00</div>
+<div class="palco">
+<svg class="anel-svg" viewBox="0 0 100 100">
+<circle class="anel-fundo" cx="50" cy="50" r="46"></circle>
+<circle class="anel-progresso" id="anel-progresso" cx="50" cy="50" r="46"></circle>
+</svg>
+<div class="seta-wrap" id="seta-wrap">
+<svg viewBox="0 0 100 100">
+<polygon points="10,40 60,40 60,25 92,50 60,75 60,60 10,60" fill="#4c8dff"></polygon>
+</svg>
+</div>
+</div>
+</section>
+
+<section id="screen-fim" class="screen fim">
+<h2>Concluído! 🎉</h2>
+<p>Os 2 minutos de setas terminaram.</p>
+<button class="btn" id="btn-repetir">ESCOLHER DIFICULDADE</button>
+</section>
+
+</div>
+
+<script>
+(function(){
+var DURACAO_TOTAL=120; // segundos (2 minutos)
+var CADENCIA=10; // segundos por direção (definido pela dificuldade escolhida)
+var CORES=['#4c8dff','#3ddc97','#ffc93c','#ff5468'];
+var DIRECOES=[
+{nome:'cima',rot:-90},
+{nome:'direita',rot:0},
+{nome:'baixo',rot:90},
+{nome:'esquerda',rot:180}
+];
+
+var telas={
+inicio:document.getElementById('screen-inicio'),
+jogo:document.getElementById('screen-jogo'),
+fim:document.getElementById('screen-fim')
+};
+var elCronometro=document.getElementById('cronometro');
+var elAnelProgresso=document.getElementById('anel-progresso');
+var elSetaWrap=document.getElementById('seta-wrap');
+var PERIMETRO=2*Math.PI*46;
+elAnelProgresso.style.strokeDasharray=PERIMETRO;
+
+var inicioTotal=0,inicioEtapa=0,ultimaDirecao=-1,rafId=null;
+
+function mostrarTela(id){
+Object.keys(telas).forEach(function(k){telas[k].classList.toggle('active',k===id)});
+}
+
+function escolherDirecao(){
+var i;
+do{i=Math.floor(Math.random()*DIRECOES.length)}while(i===ultimaDirecao&&DIRECOES.length>1);
+ultimaDirecao=i;
+return DIRECOES[i];
+}
+
+function aplicarDirecao(dir,cor){
+elSetaWrap.style.setProperty('--rot',dir.rot+'deg');
+elSetaWrap.style.transform='rotate('+dir.rot+'deg)';
+elSetaWrap.querySelector('polygon').setAttribute('fill',cor);
+elSetaWrap.classList.remove('trocando');
+void elSetaWrap.offsetWidth;
+elSetaWrap.classList.add('trocando');
+}
+
+function novaEtapa(){
+inicioEtapa=performance.now();
+var dir=escolherDirecao();
+var cor=CORES[Math.floor(Math.random()*CORES.length)];
+aplicarDirecao(dir,cor);
+}
+
+function formatarTempo(s){
+var m=Math.floor(s/60),seg=s%60;
+return m+':'+(seg<10?'0':'')+seg;
+}
+
+function loop(agora){
+var decorridoTotal=(agora-inicioTotal)/1000;
+var restante=Math.max(0,DURACAO_TOTAL-decorridoTotal);
+elCronometro.textContent=formatarTempo(Math.ceil(restante));
+
+var decorridoEtapa=(agora-inicioEtapa)/1000;
+if(decorridoEtapa>=CADENCIA&&restante>0){
+novaEtapa();
+decorridoEtapa=0;
+}
+var progEtapa=1-Math.min(1,decorridoEtapa/CADENCIA);
+elAnelProgresso.style.strokeDashoffset=PERIMETRO*(1-progEtapa);
+
+if(restante<=0){
+mostrarTela('fim');
+return;
+}
+rafId=requestAnimationFrame(loop);
+}
+
+function iniciar(cadencia){
+CADENCIA=cadencia;
+mostrarTela('jogo');
+inicioTotal=performance.now();
+ultimaDirecao=-1;
+novaEtapa();
+if(rafId)cancelAnimationFrame(rafId);
+rafId=requestAnimationFrame(loop);
+}
+
+document.querySelectorAll('.btn-dif').forEach(function(btn){
+btn.addEventListener('click',function(){
+iniciar(parseInt(btn.getAttribute('data-cadencia'),10));
+});
+});
+document.getElementById('btn-repetir').addEventListener('click',function(){
+mostrarTela('inicio');
+});
+document.getElementById('btn-sair-jogo').addEventListener('click',function(){
+if(rafId)cancelAnimationFrame(rafId);
+mostrarTela('inicio');
+});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Termo</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eaf2ff;--ink:#1b2559;--tile:#fff;--line:#9db4e0;--ok:#2fb36b;--mid:#f2b705;--no:#8a94a8;--key:#cfdcf5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a38;--ink:#eef2ff;--tile:#1f2850;--line:#3d4b85;--key:#34417a}}
+:root[data-theme="dark"]{--bg:#141a38;--ink:#eef2ff;--tile:#1f2850;--line:#3d4b85;--key:#34417a}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Fredoka,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:10px 8px 0}
+h1{margin:2px 0;font-size:1.8rem;letter-spacing:.08em}
+#modes{display:flex;gap:6px}
+.m,#again{border:2px solid var(--ink);border-radius:999px;background:transparent;color:var(--ink);padding:5px 14px;font:700 .95rem Fredoka,system-ui,sans-serif;cursor:pointer}
+.m[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+#msg{min-height:1.6em;margin:6px 0;font-weight:700;text-align:center}
+#boards{display:grid;gap:12px;width:min(100%,560px);margin-bottom:12px}
+#boards.n1{grid-template-columns:min(100%,320px);justify-content:center}
+#boards.n2,#boards.n4{grid-template-columns:1fr 1fr}
+.b{display:grid;gap:4px;align-content:start;padding:4px;border-radius:12px;border:3px solid transparent}
+.b.done{border-color:var(--ok)}
+.row{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.t{aspect-ratio:1;border:3px solid var(--line);background:var(--tile);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;text-transform:uppercase}
+.n2 .t{font-size:1.2rem;border-width:2px}.n4 .t{font-size:.95rem;border-width:2px;border-radius:5px}
+.t.f{border-color:var(--ink)}
+.cur .t:not(.f){border-style:dashed}
+.t.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.t.mid{background:var(--mid);border-color:var(--mid);color:#fff}
+.t.no{background:var(--no);border-color:var(--no);color:#fff}
+#again{display:none;margin:0 0 10px;background:var(--ok);border-color:var(--ok);color:#fff}
+#kb{width:min(100%,480px);margin-top:auto;position:sticky;bottom:0;background:var(--bg);padding:6px 0 10px;display:flex;flex-direction:column;gap:6px}
+.kr{display:flex;gap:4px}
+.k{flex:1;min-width:0;height:46px;border:0;border-radius:8px;background:var(--key);color:var(--ink);font:700 1rem Fredoka,system-ui,sans-serif;text-transform:uppercase;cursor:pointer}
+.k.w{flex:1.6}
+.k.ok{background:var(--ok);color:#fff}.k.mid{background:var(--mid);color:#fff}.k.no{background:var(--no);color:#fff}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+</style>
+</head>
+<body>
+<h1>TERMO</h1>
+<div id="modes"></div>
+<div id="msg"></div>
+<div id="boards"></div>
+<button id="again">Jogar de novo</button>
+<div id="kb"></div>
+<script>
+let WORDS="acaso acesa afeto agora ainda ajuda album algum almas altar amado amigo amora andar anjos antes apito arame areia arroz asilo ativo atlas atras aviao aviso azedo bacia baile balao banco banho barco barra barro basta beber bebes beijo berco besta bicho bingo birra bispo bocas bolas bolha bolos bolsa bomba bonde bonus borda botao braco bravo brejo breve brisa bruxa busca cabra cacau cacho caixa caldo calma calor camas campo canal canja canto capaz carga carro carta casal casas causa cedro certo cesta chave chefe cheio china choro chuva cinco cinza circo civil claro clima clube cobra cobre coisa colar combo comer comeu conta copas copos coral corda corpo corre corro corte costa couro covas creme criar crime cruel cubos culpa curso curvo custo dados danca datas dedos deixa deles delta densa dente depor desde dever digno disco doces dogma doido dores dorme dormi droga duelo dupla durar duros eixos elite entra erros ervas etapa exame extra fados faixa falei falsa falta fases fatos favor fazer fecha feira feliz ferro festa fiapo ficar filha filho final firma fitas flora focas fogao fogos folha fonte forca forma forno forte fosco fotos frase freio frete fruta fruto fundo furos gaita galho ganho garfo garra gasto gatos gemas genro gente gesto girar globo golpe gordo gosta gosto graca grade grafo grama grana grato grave gripe grito grupo guias haste honra horas hotel humor idade ideia idosa idoso igual ilhas irmao irmas jarro jeito jogar jogos jogou jovem juizo junto justo lagoa lance lapis lapso largo laser latas lavar leite leito lente lento lesma letra levar libra licao lidar limao limbo limpo linda lindo linha lirio lista litro livre livro lobos local logos longe lotes lucro lugar lunar luzes macas macio magia magro maior malas malha manga manha manso mapas marca marco massa matar media meias meigo melao menor menos mente mesas mesmo metal metro mexer micro miolo mirar misto modos molas molho monge monte moral morar morro morte mosca motor mudar mudos mulas multa mundo museu nacao nadar naipe nariz natal navio negar nervo ninho nobre noite nomes norma nosso notas novas novos nuvem obras oeste olhei olhos ombro ontem opcao ordem orgao ossos ostra ouros outra outro ouvir pacto padre pagar pagos palha palma panda panos papel parar pares parte passo pasta pasto patas pavao pecas pedra pegar pegou peito peixe pensa pente perna perto pesar pesca peste piada picos pilha pinga pinho pinta pinto pipas pista pizza plano plena pluma pobre poder podre poema poeta polar polos pombo ponta ponte porco porta porto posse pouco povos praca prado praia prata prato prazo prece preco preto prima primo prosa prova pudim pular pulga pulso punho quase queda quero radar radio raios raiva rampa rapaz raras ratos razao reais redes regra reino relva remar retas rezar rifas rimas risco ritmo rival rocha rodas rolar rombo ronda rosto rotas roubo rouca rouco roupa rubro rudes ruido ruins ruiva rumor sabao sabor sacos safra saias salao salas salsa salto samba saude selos selva senha sente serie serra servo setas sexta sigla signo sinal sinos sinto sobra sobre socio sogra solar solda solto somar sonda sonha sonho sopro sorte suave subir sucos sujar sujos surdo tabua tampa tanga tanto tapar tapas tarde taxas teias telas temas temer tempo tenda tenis tenso termo terra texto tigre tipos tiros tocar todos tomar tonto topos torre torta tosse total touca touro trama trave trigo troca trono tropa truco tubos tumba turma turno unhas uniao unido urnas urubu usado usina vagas valer valor vapor varal vasos vazio velas velho venda vento verao verbo verde verso vezes viaja vidro vigia vigor vinho vinte viola visao vital viver volta votar vozes vulto zebra zelar zonas zumbi".split(" "),S=new Set(WORDS.concat("abafa abala abano abate abeto abola acena aceno aceso acima acode acres acusa adega adere adeus adubo adula afaga afere afeta afiar afina afixo afoga agita agudo ajude ajudo alada alado alega aleta algas aluga aluno amena ameno amiga amplo anexo anima anime animo apaga apela apelo apita apoia apoio arado arcar ardeu arena aroma artes assam assar ataca atado ateia atual avisa aviva avive azuis baila baita baixa baixe balsa bambu banca banda bando banha barba barca bater bates batom bebeu beija beira belas belos benta bicos bilha bloco blusa bodes boina bolso bones borra botar braba brabo brasa brava briga burro cabem caber cacar cacos cafes caiba caibo calca calda cansa capim capta carne casar casca casco cauda ceder cegas cegos celta cenas censo cerca cerco cerro chaga chama chato checa chega cheia chora chuta ciclo cigar cinta cinto cisma clama cobri colha colhe colmo comum conto copia corra corta corvo cotas crase cravo credo crise cruza culto curar curta curto dando dardo deita deixo delas deram desse desta deusa dicas disto dizem dizer doado doava dorso drama duplo durmo ecoar edita eleva emite enfia entre envia envie errar estao exato exige exilo falar falas falha falho fardo faria farol fator fazem feche feixe ferir ficam ficha figos finge firme floco fluir folga fomos foram fraco fugir furar furor furto ganha gelar gemer geral gerir golfe grava gueto guisa haver havia heroi ideal imita imune inato india indio inova janta jogue junta justa lados larga leigo lenda lomba lombo longo lutar macho magoa manca medir meiga meses mesma minha minho moeda morde morta mover muito mural nasce negro norte nossa nunca obter olhar pagam papai parto passa passe pauta pedir pelos penso perda piano podia ponto posso quilo recem redor regar resta resto rimos rodar rouba saber sabia sacar saida salta santo secao secar segui seiva selar senso serao tecer tecla teima tenho tenta teste tinta todas torna torno trata trava treta trevo troco unica unico velha vendo vidas vista volto zumba".split(" ")));
+const MODES=[[1,"Termo",6],[2,"Dueto",7],[4,"Quarteto",9]];
+const R=["qwertyuiop","asdfghjkl","1zxcvbnm2"],rank={no:0,mid:1,ok:2};
+let n=1,max=6,bs,guesses,col,over,keys,typed;
+const $=s=>document.querySelector(s),msg=$("#msg"),boards=$("#boards");
+async function loadExtraWords(){
+ try{
+  const u="https://gist.githubusercontent.com/sleiph/b461ef2777a8a73dc1f8490f23008eef/raw/f0e09e93189e5984d276f30eaf2dadb9971fc97f/palavras5letras.txt";
+  const r=await fetch(u,{cache:"no-store"});
+  if(!r.ok)throw new Error("dicionário indisponível");
+  const extra=(await r.text()).split(/\s+/).map(w=>w.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")).filter(w=>/^[a-z]{5}$/.test(w));
+  WORDS=[...new Set(WORDS.concat(extra))];
+  S=new Set(WORDS);
+ }catch(e){}
+}
+
+function init(){
+ [,,max]=MODES.find(m=>m[0]==n);
+ const pool=[...WORDS].sort(()=>Math.random()-.5);
+ guesses=0;col=0;over=false;keys={};typed="";
+ boards.className="n"+n;boards.innerHTML="";bs=[];
+ for(let i=0;i<n;i++){
+  const el=document.createElement("div");el.className="b";const rows=[];
+  for(let r=0;r<max;r++){const d=document.createElement("div");d.className="row";const a=[];
+   for(let c=0;c<5;c++){const t=document.createElement("div");t.className="t";d.appendChild(t);a.push(t)}
+   el.appendChild(d);rows.push({d,a})}
+  boards.appendChild(el);bs.push({ans:pool[i],solved:false,el,rows})}
+ setCur();
+ $("#again").style.display="none";
+ msg.textContent=n==1?"Descubra a palavra de 5 letras":"Descubra "+n+" palavras de 5 letras";
+ $("#modes").innerHTML="";
+ MODES.forEach(([k,name])=>{const b=document.createElement("button");b.className="m";b.textContent=name;
+  b.setAttribute("aria-pressed",k==n);b.onclick=()=>{n=k;init()};$("#modes").appendChild(b)});
+ const kb=$("#kb");kb.innerHTML="";
+ R.forEach(r=>{const d=document.createElement("div");d.className="kr";
+  [...r].forEach(ch=>{const b=document.createElement("button");b.className="k";
+   if(ch=="1"){b.textContent="Enter";b.classList.add("w");b.onclick=()=>press("Enter")}
+   else if(ch=="2"){b.textContent="⌫";b.classList.add("w");b.setAttribute("aria-label","Apagar");b.onclick=()=>press("Backspace")}
+   else{b.textContent=ch;b.dataset.k=ch;b.onclick=()=>press(ch)}
+   b.onmousedown=e=>e.preventDefault();
+   d.appendChild(b)});kb.appendChild(d)});
+}
+function setCur(){bs.forEach(b=>{b.rows.forEach(r=>r.d.classList.remove("cur"));
+ if(!b.solved&&guesses<max)b.rows[guesses].d.classList.add("cur")})}
+function press(k){
+ if(over)return;
+ if(k=="Backspace"){if(col>0){col--;typed=typed.slice(0,-1);paint()}return}
+ if(k=="Enter"){
+  if(col<5){msg.textContent="Faltam letras";return}
+  if(!S.has(typed)){msg.textContent="Essa palavra não existe";return}
+  check();return}
+ if(/^[a-z]$/.test(k)&&col<5){typed+=k;col++;msg.textContent="";paint()}
+}
+function paint(){bs.forEach(b=>{if(b.solved)return;const r=b.rows[guesses];
+ r.a.forEach((t,i)=>{t.textContent=typed[i]||"";t.classList.toggle("f",i<typed.length)})})}
+function score(g,ans){
+ const res=Array(5).fill("no"),left={};
+ for(let i=0;i<5;i++){if(g[i]==ans[i])res[i]="ok";else left[ans[i]]=(left[ans[i]]||0)+1}
+ for(let i=0;i<5;i++)if(res[i]!="ok"&&left[g[i]]>0){res[i]="mid";left[g[i]]--}
+ return res}
+function check(){
+ const best=Array(5).fill(-1);
+ bs.forEach(b=>{if(b.solved)return;
+  const res=score(typed,b.ans),r=b.rows[guesses];
+  res.forEach((s,i)=>{r.a[i].classList.add(s);best[i]=Math.max(best[i],rank[s])});
+  if(typed==b.ans){b.solved=true;b.el.classList.add("done")}});
+ for(let i=0;i<5;i++){const k=typed[i],s=["no","mid","ok"][best[i]];
+  if(n==1){if(!(k in keys)||rank[s]>rank[keys[k]])keys[k]=s}
+  else if(s=="no"&&!(k in keys))keys[k]="no"}
+ document.querySelectorAll(".k[data-k]").forEach(b=>{const s=keys[b.dataset.k];if(s){b.classList.remove("ok","mid","no");b.classList.add(s)}});
+ guesses++;col=0;typed="";
+ if(bs.every(b=>b.solved))return end("Acertou! 🎉");
+ if(guesses==max)return end("Fim! "+(n==1?"A palavra era ":"Faltaram: ")+bs.filter(b=>!b.solved).map(b=>b.ans.toUpperCase()).join(", "));
+ setCur();
+}
+function end(t){over=true;setCur();msg.textContent=t;$("#again").style.display="block"}
+$("#again").onclick=()=>{document.activeElement.blur();init()};
+document.addEventListener("keydown",e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.target.tagName=="BUTTON"&&(e.key=="Enter"||e.key==" "))return;
+ press(e.key.length==1?e.key.toLowerCase():e.key)});
+init();
+loadExtraWords();
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#3b6dff">
+<title>Memória Ativa</title>
+<style>
+:root{--bg:#eef4ff;--panel:#fff;--panel2:#f6f8fe;--primary:#3b6dff;--accent:#7c4dff;--text:#131a2b;--muted:#6b7690;--line:#e6ecf8;--ok:#18b26b;--warn:#ffb020;--bad:#ff5a68;--shadow:0 10px 30px rgba(30,50,110,.12)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(900px 600px at 10% -10%,#dbe8ff,transparent 60%),radial-gradient(800px 600px at 110% 0,#eadfff,transparent 60%),var(--bg);user-select:none;touch-action:manipulation}
+button{font:inherit;border:0;cursor:pointer;color:inherit}
+.app{max-width:760px;height:100dvh;margin:auto;padding:12px 14px;overflow:hidden}
+.screen{display:none;height:100%;flex-direction:column;animation:up .25s ease}.screen.active{display:flex}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.logo{text-align:center;font-size:clamp(32px,9vw,50px);font-weight:900;letter-spacing:-2px;margin-top:18px}.logo span{color:var(--primary)}
+.subtitle{text-align:center;color:var(--muted);font-size:14px;margin:8px 0 22px}
+.modes{display:flex;flex-direction:column;gap:12px}
+.mode{background:var(--panel);border-radius:22px;padding:17px;display:grid;grid-template-columns:58px 1fr;text-align:left;box-shadow:var(--shadow);border:2px solid transparent}
+.mode:active{transform:scale(.98)}.mode .ico{grid-row:1/3;font-size:37px;display:flex;align-items:center;justify-content:center}.mode b{font-size:17px}.mode small{color:var(--muted);line-height:1.35;margin-top:4px}
+.mode.classic{border-color:#3b6dff44}.mode.timed{border-color:#ffb02055}.mode.duel{border-color:#7c4dff55}
+.home-foot{display:flex;gap:8px;margin-top:auto}.ghost,.secondary{flex:1;padding:12px 5px;background:var(--panel);border-radius:14px;box-shadow:var(--shadow);font-weight:800;font-size:12px;color:var(--muted)}
+.top{display:flex;align-items:center;gap:10px;padding:5px 0 15px}.top h2{flex:1;text-align:center;margin:0;font-size:19px}
+.icon{width:42px;height:42px;border-radius:14px;background:var(--panel);box-shadow:var(--shadow);font-size:20px}
+.field{margin-bottom:20px}.field>label{display:block;color:var(--muted);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;margin-bottom:9px}
+.pills{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.pill{padding:11px 3px;border-radius:14px;background:var(--panel);box-shadow:var(--shadow);font-weight:900;border:2px solid transparent;font-size:13px}.pill small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.pill.on{border-color:var(--primary);background:#3b6dff12}.pill.on small{color:var(--primary)}
+.themes{display:flex;gap:9px;overflow-x:auto;padding:2px 2px 8px}.theme{min-width:82px;padding:10px 4px;border-radius:16px;background:var(--panel);box-shadow:var(--shadow);border:2px solid transparent;text-align:center}.theme.on{border-color:var(--primary);background:#3b6dff12}.theme .em{display:block;font-size:25px}.theme .nm{display:block;font-size:10px;font-weight:900;color:var(--muted);margin-top:4px}.theme.on .nm{color:var(--primary)}
+.switchrow{display:flex;justify-content:space-between;align-items:center;background:var(--panel);padding:14px;border-radius:16px;box-shadow:var(--shadow);font-weight:800;font-size:14px}.switchrow small{display:block;color:var(--muted);font-weight:600;font-size:11px;margin-top:3px}
+.switch{width:50px;height:29px;position:relative}.switch input{opacity:0;width:100%;height:100%;position:absolute;z-index:2}.track{position:absolute;inset:0;background:#ccd3e3;border-radius:99px}.thumb{position:absolute;width:23px;height:23px;left:3px;top:3px;background:white;border-radius:50%;transition:.2s;box-shadow:0 2px 5px #0003}.switch input:checked~.track{background:var(--primary)}.switch input:checked~.thumb{transform:translateX(21px)}
+.primary{width:100%;padding:16px;border-radius:18px;background:linear-gradient(120deg,var(--primary),var(--accent));color:white;font-weight:900;font-size:16px;box-shadow:0 9px 24px #3b6dff55}
+.gamehead{display:flex;gap:8px;align-items:center;margin-bottom:9px}.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;flex:1}.stat{background:var(--panel);border-radius:14px;padding:7px 3px;text-align:center;box-shadow:var(--shadow)}.stat span{display:block;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase}.stat b{font-size:17px}
+.turn{text-align:center;background:#7c4dff16;color:var(--accent);padding:9px;border-radius:14px;font-weight:900;margin-bottom:9px}.turn.p2{background:#ffb02022;color:#b87500}
+.boardwrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.board{display:grid;gap:8px;place-content:center}
+.card{background:none;padding:0;perspective:900px}.inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .4s}.card.flipped .inner,.card.matched .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.back{background:linear-gradient(145deg,#3b6dff,#7c4dff);box-shadow:0 5px 14px #3b6dff55;color:#fff;font-size:30px}.front{transform:rotateY(180deg);background:var(--panel);border:2px solid var(--line);box-shadow:0 5px 14px #1e326e22;padding:4px;gap:3px}.fig{font-size:34px;line-height:1}.name{font-size:10px;font-weight:900;color:var(--muted);text-align:center;line-height:1.05}.matched .front{background:#18b26b18;border-color:#18b26b88}
+.bottom{display:flex;gap:9px;margin-top:10px}.bottom button{flex:1}
+.result{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.trophy{font-size:65px}.result h2{font-size:27px;margin:10px}.result p{color:var(--muted);line-height:1.5}.result .primary{margin-top:15px}.result .secondary{margin-top:10px;width:100%}
+.hidden{display:none!important}
+@media(max-width:500px){.pills{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="home" class="screen active">
+  <div class="logo">MEMÓRIA <span>ATIVA</span></div>
+  <div class="subtitle">Treine sua memória em partidas rápidas e divertidas.</div>
+  <div class="modes">
+    <button class="mode classic" onclick="openSetup('classic')"><span class="ico">🧠</span><b>Clássico</b><small>Encontre todos os pares no seu ritmo.</small></button>
+    <button class="mode timed" onclick="openSetup('timed')"><span class="ico">⏱️</span><b>Contra o Tempo</b><small>Encontre todos os pares antes que o tempo acabe.</small></button>
+    <button class="mode duel" onclick="openSetup('duel')"><span class="ico">⚔️</span><b>Duelo · 2 Jogadores</b><small>Alternem as jogadas e veja quem faz mais pares.</small></button>
+  </div>
+  <div class="home-foot"><button class="ghost" onclick="alert('Escolha um modo para começar!')">📊 Estatísticas</button><button class="ghost" onclick="alert('Use as opções da tela de configuração para personalizar a partida.')">⚙️ Ajustes</button><button class="ghost" onclick="alert('Vire duas cartas. Encontre os pares e complete o tabuleiro!')">❓ Como jogar</button></div>
+</section>
+
+<section id="setup" class="screen">
+  <div class="top"><button class="icon" onclick="show('home')">←</button><h2 id="setupTitle">Clássico</h2><button class="icon" style="visibility:hidden">·</button></div>
+  <div class="field"><label>Dificuldade</label><div class="pills">
+    <button class="pill" data-pairs="4" onclick="setPairs(4,this)">Fácil<small>8 cartas</small></button>
+    <button class="pill on" data-pairs="6" onclick="setPairs(6,this)">Médio<small>12 cartas</small></button>
+    <button class="pill" data-pairs="8" onclick="setPairs(8,this)">Difícil<small>16 cartas</small></button>
+    <button class="pill" data-pairs="10" onclick="setPairs(10,this)">Expert<small>20 cartas</small></button>
+  </div></div>
+  <div id="timeField" class="field hidden"><label>Tempo limite</label><div class="pills">
+    <button class="pill" onclick="setTime(60,this)">60s</button><button class="pill on" onclick="setTime(90,this)">90s</button><button class="pill" onclick="setTime(120,this)">120s</button>
+  </div></div>
+  <div class="field"><label>Tema</label><div id="themes" class="themes"></div></div>
+  <label class="switchrow"><span>Espiar no início<small>Mostra as cartas por 2 segundos antes de começar.</small></span><span class="switch"><input id="preview" type="checkbox" checked><span class="track"></span><span class="thumb"></span></span></label>
+  <div style="flex:1"></div><button class="primary" onclick="startGame()">COMEÇAR</button>
+</section>
+
+<section id="game" class="screen">
+  <div class="gamehead"><button class="icon" onclick="goHome()">←</button><div class="hud">
+    <div class="stat"><span id="s1label">Pares</span><b id="s1">0</b></div>
+    <div class="stat"><span id="s2label">Tentativas</span><b id="s2">0</b></div>
+    <div class="stat"><span id="s3label">Tempo</span><b id="s3">0</b></div>
+  </div></div>
+  <div id="turn" class="turn hidden"></div>
+  <div class="boardwrap"><div id="board" class="board"></div></div>
+  <div class="bottom"><button class="secondary" onclick="goHome()">Menu</button><button class="primary" onclick="startGame()">Reiniciar</button></div>
+</section>
+
+<section id="result" class="screen">
+  <div class="result"><div class="trophy">🏆</div><h2 id="rtitle"></h2><p id="rtext"></p><button class="primary" onclick="startGame()">JOGAR NOVAMENTE</button><button class="secondary" onclick="goHome()">VOLTAR AO MENU</button></div>
+</section>
+
+</div>
+
+<script>
+const DATA={
+ animals:[["🐶","Cachorro"],["🐱","Gato"],["🐸","Sapo"],["🦁","Leão"],["🐵","Macaco"],["🐼","Panda"],["🐰","Coelho"],["🦊","Raposa"],["🐻","Urso"],["🐯","Tigre"]],
+ colors:[["🔴","Vermelho"],["🔵","Azul"],["🟢","Verde"],["🟡","Amarelo"],["🟣","Roxo"],["🟠","Laranja"],["🩷","Rosa"],["🩵","Azul-claro"],["⚫","Preto"],["⚪","Branco"]],
+ shapes:[["🔺","Triângulo"],["🔵","Círculo"],["🟩","Quadrado"],["⭐","Estrela"],["⬟","Hexágono"],["❤️","Coração"],["🔶","Losango"],["⚫","Círculo"],["🔷","Diamante"],["🔻","Triângulo"]],
+ body:[["👁️","Olho"],["👂","Orelha"],["👃","Nariz"],["👄","Boca"],["✋","Mão"],["🦶","Pé"],["🧠","Cérebro"],["❤️","Coração"],["👀","Olhos"],["🦵","Perna"]]
+};
+const THEMEINFO=[["animals","🐶","Animais"],["colors","🎨","Cores"],["shapes","🔷","Formas"],["body","🧍","Corpo"]];
+let mode="classic",pairs=6,timeLimit=90,theme="animals",deck=[],first=null,second=null,lock=false,found=0,attempts=0,turn=1,scores=[0,0],seconds=0,timer=null;
+
+const themesEl=document.getElementById("themes");
+THEMEINFO.forEach((t,i)=>{const b=document.createElement("button");b.className="theme"+(i===0?" on":"");b.innerHTML=`<span class="em">${t[1]}</span><span class="nm">${t[2]}</span>`;b.onclick=()=>{theme=t[0];document.querySelectorAll(".theme").forEach(x=>x.classList.remove("on"));b.classList.add("on")};themesEl.appendChild(b)});
+
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active")}
+function openSetup(m){mode=m;document.getElementById("setupTitle").textContent=m==="classic"?"Clássico":m==="timed"?"Contra o Tempo":"Duelo · 2 Jogadores";document.getElementById("timeField").classList.toggle("hidden",m!=="timed");show("setup")}
+function setPairs(n,b){pairs=n;document.querySelectorAll("[data-pairs]").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
+function setTime(n,b){timeLimit=n;b.parentElement.querySelectorAll(".pill").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
+function shuffle(a){for(let i=a.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startGame(){
+ clearInterval(timer);found=0;attempts=0;turn=1;scores=[0,0];seconds=0;first=null;second=null;lock=false;
+ let base=DATA[theme].slice(0,pairs);deck=shuffle([...base,...base]);
+ show("game");
+ document.getElementById("s1label").textContent=mode==="duel"?"Jogador 1":"Pares";
+ document.getElementById("s2label").textContent=mode==="duel"?"Jogador 2":"Tentativas";
+ document.getElementById("s3label").textContent=mode==="timed"?"Restante":"Tempo";
+ document.getElementById("s1").textContent=0;document.getElementById("s2").textContent=0;
+ document.getElementById("s3").textContent=mode==="timed"?timeLimit:0;
+ document.getElementById("turn").classList.toggle("hidden",mode!=="duel");
+ if(mode==="duel")updateTurn();
+ render();
+ if(mode==="timed"){timer=setInterval(()=>{timeLimit--;document.getElementById("s3").textContent=timeLimit;if(timeLimit<=0)finish(false)},1000)}
+ else timer=setInterval(()=>{seconds++;document.getElementById("s3").textContent=seconds},1000);
+ if(document.getElementById("preview").checked){lock=true;document.querySelectorAll(".card").forEach(c=>c.classList.add("flipped"));setTimeout(()=>{document.querySelectorAll(".card").forEach(c=>c.classList.remove("flipped"));lock=false},2000)}
+}
+function render(){
+ const b=document.getElementById("board");b.innerHTML="";
+ let cols=pairs<=4?4:pairs<=8?4:5;let size=70;
+ if(window.innerWidth<500)size=pairs>=10?56:pairs>=8?62:68;
+ b.style.gridTemplateColumns=`repeat(${cols},${size}px)`;b.style.gridAutoRows=`${size}px`;
+ deck.forEach((item,i)=>{let c=document.createElement("button");c.className="card";c.style.width=size+"px";c.style.height=size+"px";c.innerHTML=`<div class="inner"><div class="face back">✦</div><div class="face front"><div class="fig">${item[0]}</div><div class="name">${item[1]}</div></div></div>`;c.onclick=()=>flip(c,i);b.appendChild(c)})
+}
+function flip(c,i){
+ if(lock||c.classList.contains("flipped")||c.classList.contains("matched"))return;
+ c.classList.add("flipped");
+ if(!first){first={c,i};return}
+ second={c,i};lock=true;attempts++;document.getElementById("s2").textContent=mode==="duel"?scores[1]:attempts;
+ setTimeout(check,420);
+}
+function check(){
+ if(deck[first.i][0]===deck[second.i][0]){
+   first.c.classList.add("matched");second.c.classList.add("matched");found++;
+   if(mode==="duel"){scores[turn-1]++;document.getElementById("s"+turn).textContent=scores[turn-1]}
+   else document.getElementById("s1").textContent=found;
+   reset();
+   if(found===pairs)finish(true);
+ }else{
+   setTimeout(()=>{first.c.classList.remove("flipped");second.c.classList.remove("flipped");reset();if(mode==="duel"){turn=turn===1?2:1;updateTurn()}},500)
+ }
+}
+function reset(){first=null;second=null;lock=false}
+function updateTurn(){const t=document.getElementById("turn");t.textContent="🎯 Vez do Jogador "+turn;t.classList.toggle("p2",turn===2)}
+function finish(win){
+ clearInterval(timer);lock=true;
+ setTimeout(()=>{show("result");if(mode==="duel"){let title=scores[0]===scores[1]?"Empate! 🤝":scores[0]>scores[1]?"Jogador 1 venceu! 🏆":"Jogador 2 venceu! 🏆";document.getElementById("rtitle").textContent=title;document.getElementById("rtext").textContent=`Jogador 1: ${scores[0]} pares • Jogador 2: ${scores[1]} pares`;}
+ else if(mode==="timed"&&!win){document.getElementById("rtitle").textContent="Tempo esgotado! ⏱️";document.getElementById("rtext").textContent=`Você encontrou ${found} de ${pairs} pares.`}
+ else {document.getElementById("rtitle").textContent="Parabéns! 🎉";document.getElementById("rtext").textContent=`Você encontrou todos os ${pairs} pares em ${attempts} tentativas.`}},250)
+}
+function goHome(){clearInterval(timer);show("home")}
+window.addEventListener("resize",()=>{if(document.getElementById("game").classList.contains("active"))render()});
+</script>
+</body>
+</html>
