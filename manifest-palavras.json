@@ -1,0 +1,10 @@
+{
+  "name": "Jogo das Palavras - Ativamente",
+  "short_name": "Palavras",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5faf6",
+  "theme_color": "#17834b",
+  "orientation": "portrait",
+  "icons": []
+}

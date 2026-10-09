@@ -1,0 +1,10 @@
+JOGO DAS PALAVRAS — INTEGRAÇÃO NO ATIVAMENTE
+
+O jogo agora fica no diretório principal do projeto, junto dos demais arquivos HTML.
+Página: jogo-das-palavras.html
+Estilos: jogo-das-palavras.css
+JavaScript: jogo-das-palavras.js
+Manifesto: manifest-palavras.json
+Logo: logo-jogo-das-palavras.png
+
+O catálogo principal (index.html) aponta para a página e para a logo no diretório principal. O service worker principal do Ativamente faz o cache dos arquivos do jogo.

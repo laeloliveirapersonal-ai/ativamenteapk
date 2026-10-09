@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17834b">
+<meta name="description" content="Jogo das Palavras Ativamente: letras e sílabas embaralhadas com pistas opcionais.">
+<link rel="manifest" href="manifest-palavras.json">
+<title>Jogo das Palavras | Ativamente</title>
+<link rel="stylesheet" href="jogo-das-palavras.css">
+<link rel="stylesheet" href="responsivo-dispositivos.css">
+</head>
+<body>
+<header class="topbar">
+  <img class="game-logo" src="logo-jogo-das-palavras.png" alt="Logo do Jogo das Palavras Ativamente">
+  <div class="brand-copy"><div class="brand">Ativamente</div><div class="subbrand">Jogo das Palavras</div></div>
+  <button id="settingsBtn" class="icon-btn" aria-label="Configurações" title="Configurações">⚙</button>
+</header>
+<main id="app">
+  <section id="homeScreen" class="screen">
+    <div class="hero">
+      <div class="hero-art" aria-hidden="true"><span class="letter l1">A</span><span class="letter l2">B</span><span class="letter l3">O</span><span class="spark">✦</span></div>
+      <p class="eyebrow">APRENDER BRINCANDO</p>
+      <h1>Vamos montar<br>palavras?</h1>
+      <p class="lead">Escolha as letras ou as sílabas e coloque cada peça no lugar certo.</p>
+    </div>
+    <div class="home-level-choice">
+      <label for="homeDifficultySelect">Escolha o nível antes de começar</label>
+      <select id="homeDifficultySelect">
+        <option value="1">Nível 1 — palavras bem curtas</option>
+        <option value="2">Nível 2 — palavras bem curtas</option>
+        <option value="3">Nível 3 — palavras curtas</option>
+        <option value="4">Nível 4 — palavras curtas</option>
+        <option value="5">Nível 5 — palavras médias</option>
+        <option value="6">Nível 6 — palavras médias</option>
+        <option value="7">Nível 7 — palavras maiores</option>
+        <option value="8">Nível 8 — palavras maiores</option>
+        <option value="9">Nível 9 — palavras longas</option>
+        <option value="10">Nível 10 — palavras longas</option>
+      </select>
+      <p>O nível selecionado define a faixa de tamanho das palavras. Cada partida contém 10 palavras sorteadas aleatoriamente.</p>
+    </div>
+    <div class="mode-grid">
+      <button class="mode-card" data-mode="letters"><span class="mode-icon">A B C</span><span class="mode-title">Letras embaralhadas</span><span class="mode-desc">Monte a palavra letra por letra.</span><span class="arrow">Começar →</span></button>
+      <button class="mode-card" data-mode="syllables"><span class="mode-icon">BO · LA</span><span class="mode-title">Sílabas embaralhadas</span><span class="mode-desc">Organize os blocos silábicos.</span><span class="arrow">Começar →</span></button>
+    </div>
+    <button id="customWordsBtn" class="secondary-btn wide">✚ Usar palavras escolhidas pelo terapeuta</button>
+    <div class="home-bottom"><span class="dot"></span> Sem cronômetro obrigatório · Pistas sob demanda</div>
+  </section>
+
+  <section id="gameScreen" class="screen hidden">
+    <div class="game-nav"><button id="backBtn" class="text-btn">← Menu</button><span id="roundLabel">Palavra 1</span><button id="restartBtn" class="text-btn">Reiniciar ↻</button></div>
+    <div class="progress-track"><div id="progressBar"></div></div>
+    <div class="game-card">
+      <div class="task-tag" id="taskTag">DESAFIO DE LETRAS</div>
+      <h2 id="promptTitle">Monte a palavra</h2>
+      <p id="promptSub" class="muted">Organize as peças nos espaços.</p>
+      <div id="answerSlots" class="answer-slots" aria-label="Espaços da palavra"></div>
+      <div class="slot-instruction">Toque em uma peça e depois em um espaço — ou arraste a peça.</div>
+      <div id="tileBank" class="tile-bank" aria-label="Peças disponíveis"></div>
+      <div class="controls">
+        <button id="hintBtn" class="secondary-btn">💡 Pista</button>
+        <button id="clearBtn" class="secondary-btn">Limpar</button>
+        <button id="checkBtn" class="primary-btn">Verificar</button>
+      </div>
+      <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+    </div>
+    <div class="session-foot"><span id="sessionCount">0 concluídas</span><span>Você pode tentar novamente quando quiser.</span></div>
+  </section>
+
+  <section id="settingsScreen" class="screen hidden">
+    <div class="game-nav"><button id="settingsBackBtn" class="text-btn">← Voltar</button><span>Modo profissional</span></div>
+    <div class="settings-card">
+      <p class="eyebrow">PERSONALIZAÇÃO</p>
+      <h2>Prepare uma atividade</h2>
+      <label for="themeSelect">Tema de palavras</label>
+      <select id="themeSelect"><option value="all">Todos os temas</option><option value="animais">Animais</option><option value="alimentos">Alimentos</option><option value="objetos">Objetos</option><option value="natureza">Natureza</option><option value="corpo">Corpo</option><option value="pessoas">Pessoas</option><option value="música">Música</option></select>
+      <label for="wordInput">Palavras personalizadas (separe por vírgulas)</label>
+      <textarea id="wordInput" rows="3" placeholder="Ex.: BOLA, CASA, GATO, BONECA"></textarea>
+      <p class="small-note">Palavras personalizadas são salvas neste dispositivo. Para o modo de sílabas, o jogo usa uma divisão inicial para palavras conhecidas; revise-a com a criança e o profissional antes de usar. Você pode sempre usar palavras do banco padrão.</p>
+      <label for="wordLengthSelect">Quantidade de letras</label>
+      <select id="wordLengthSelect">
+        <option value="varied">Variadas — misturar tamanhos</option>
+        <option value="2">Somente palavras com 2 letras</option>
+        <option value="3">Somente palavras com 3 letras</option>
+        <option value="4">Somente palavras com 4 letras</option>
+        <option value="5">Somente palavras com 5 letras</option>
+        <option value="6">Somente palavras com 6 letras</option>
+        <option value="7plus">Somente palavras com 7 letras ou mais</option>
+      </select>
+      <label for="difficultySelect">Nível de apoio (1 a 10)</label>
+      <select id="difficultySelect">
+        <option value="1">Nível 1 — palavras bem curtas</option>
+        <option value="2">Nível 2 — palavras bem curtas</option>
+        <option value="3">Nível 3 — palavras curtas</option>
+        <option value="4">Nível 4 — palavras curtas</option>
+        <option value="5">Nível 5 — palavras médias</option>
+        <option value="6">Nível 6 — palavras médias</option>
+        <option value="7">Nível 7 — palavras maiores</option>
+        <option value="8">Nível 8 — palavras maiores</option>
+        <option value="9">Nível 9 — palavras longas</option>
+        <option value="10">Nível 10 — palavras longas</option>
+      </select>
+      <p class="small-note">Escolha a quantidade de letras ou misture tamanhos. O nível define a faixa de tamanho das palavras e não é uma classificação da criança. Cada partida tem 10 palavras sorteadas aleatoriamente; cada toque em “Outra pista” revela até duas letras corretas (ou duas sílabas no modo de sílabas).</p>
+      <p class="small-note"><strong>Cada partida tem 10 palavras.</strong> O jogo sorteia uma seleção diferente a cada nova partida, conforme o nível e os filtros escolhidos.</p>
+      <label class="check-row"><input id="showWordAfter" type="checkbox" checked> Mostrar palavra escrita depois do acerto</label>
+      <label class="check-row"><input id="soundToggle" type="checkbox"> Ativar áudio da palavra (quando disponível)</label>
+      <div class="settings-actions"><button id="saveSettingsBtn" class="primary-btn">Salvar configurações</button><button id="playCustomBtn" class="secondary-btn">Jogar com estas palavras</button></div>
+      <div id="settingsFeedback" class="feedback"></div>
+      <h3>Palavras trabalhadas neste dispositivo</h3>
+      <p id="historySummary" class="muted">Ainda não há palavras registradas.</p>
+      <button id="clearHistoryBtn" class="danger-btn">Apagar histórico local</button>
+    </div>
+  </section>
+</main>
+<footer>Ativamente · Jogo educativo de apoio à alfabetização</footer>
+<script src="jogo-das-palavras.js"></script>
+</body>
+</html>
