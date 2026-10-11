@@ -1,0 +1,31 @@
+/* Ativamente — ajustes comuns para celulares e tablets.
+   Regras conservadoras: preservam o desenho de cada jogo e evitam cortes horizontais. */
+*, *::before, *::after { box-sizing: border-box; }
+html { width: 100%; min-width: 0; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { max-width: 100%; min-width: 0; }
+img, video, svg, canvas, iframe { max-width: 100%; }
+img, video { height: auto; }
+button, input, select, textarea { max-width: 100%; }
+button, [role="button"] { touch-action: manipulation; }
+input, select, textarea { font-size: max(16px, 1em); }
+:where(main, header, footer, section, article, nav, aside, form, .container, .app, .app-shell, .screen, .game-card, .settings-card) { min-width: 0; }
+:where(h1,h2,h3,p,label,small,strong,span) { overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  body { overflow-wrap: anywhere; }
+  :where(button, input, select, textarea) { max-width: 100%; }
+  :where(.controls, .actions, .buttons, .settings-actions) { flex-wrap: wrap; }
+  :where(.controls button, .actions button, .buttons button, .settings-actions button) { flex: 1 1 auto; }
+  :where(img, video, canvas) { max-width: 100%; }
+}
+@media (max-width: 380px) {
+  :where(.topbar, .game-nav, .game-head, .game-top, .game-topline) { gap: 6px; }
+  :where(.topbar, .game-nav, .game-head, .game-top) { flex-wrap: wrap; }
+  :where(button, input, select, textarea) { min-width: 0; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  html, body { min-height: 100%; }
+  body { overflow-y: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
