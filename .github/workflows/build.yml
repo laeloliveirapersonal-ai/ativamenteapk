@@ -1,0 +1,43 @@
+name: Gerar AAB Play Store
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Compilar AAB
+        run: |
+          if [ -f "package.json" ]; then
+            npm install
+            npx cap sync android || true
+          fi
+          if [ -d "android" ]; then
+            cd android
+            chmod +x gradlew
+            ./gradlew bundleRelease
+          fi
+
+      - name: Disponibilizar AAB para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ativamente-PlayStore-AAB
+          path: android/app/build/outputs/bundle/release/*.aab
