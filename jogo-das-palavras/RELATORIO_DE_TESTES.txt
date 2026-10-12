@@ -1,0 +1,10 @@
+RELATÓRIO DE VERIFICAÇÃO — JOGO DAS PALAVRAS ATIVAMENTE
+
+- Adicionado seletor de nível na tela inicial, antes da escolha do desafio.
+- Cada partida seleciona 10 palavras aleatórias do conjunto compatível com nível, tema e tamanho escolhidos.
+- Uma nova partida sorteia novamente; reiniciar mantém as 10 palavras da rodada atual.
+- Removido o seletor de quantidade de palavras por rodada para garantir 10 por partida.
+- Imagens continuam removidas.
+- Pista mostra até duas peças na sequência correta; mensagem diferencia letras e sílabas.
+
+Verificação técnica: sintaxe JavaScript e estrutura de HTML/ZIP conferidas por script. Limitação: sem teste de navegação real em navegador nesta entrega.
