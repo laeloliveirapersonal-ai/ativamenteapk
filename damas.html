@@ -599,6 +599,14 @@ body.reduced *{animation-duration:.01ms !important;transition-duration:.05ms !im
 }
 </style>
 <link rel="stylesheet" href="./responsivo-dispositivos.css">
+<script src="ajustes.js"></script>
+<script src="i18n.js"></script>
+<script src="i18n-damas.js"></script>
+<script>
+/* Ativamente: o idioma da plataforma comanda o seletor próprio das Damas */
+(function(){var I=window.AtivamenteI18n;if(!I)return;try{localStorage.setItem("damasativamente.language.v2",I.idioma)}catch(e){}
+document.addEventListener("change",function(e){if(e.target&&e.target.id==="game-language"&&e.target.value!==I.idioma){I.definir(e.target.value);setTimeout(function(){location.reload()},50)}},true);})();
+</script>
 </head>
 <body>
 <div class="app">

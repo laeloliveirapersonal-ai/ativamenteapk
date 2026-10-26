@@ -73,11 +73,17 @@ button{touch-action:manipulation}
 }
 </style>
 <link rel="stylesheet" href="./responsivo-dispositivos.css">
+<script src="ajustes.js"></script>
+<script src="i18n.js"></script>
+<script src="i18n-trava-letras.js"></script>
 </head>
 <body>
 <div id="app"></div>
 <script>
-const LETRAS="ABCDEFGHIJLMNOPRSTUV".split("");
+/* Letras da roda por idioma (20 cada): ficam fora as que quase nunca começam palavras.
+   pt/es: sem K, Q, W, X, Y, Z (e Ñ no espanhol)  ·  en: sem Q, U, V, X, Y, Z */
+const LETRAS_IDIOMA={pt:"ABCDEFGHIJLMNOPRSTUV",es:"ABCDEFGHIJLMNOPRSTUV",en:"ABCDEFGHIJKLMNOPRSTW"};
+const LETRAS=(LETRAS_IDIOMA[(window.AtivamenteI18n&&AtivamenteI18n.idioma)||"pt"]||LETRAS_IDIOMA.pt).split("");
 const FACIL=["Animais","Frutas","Cores","Comidas","Brinquedos","Nomes de menino","Nomes de menina","Partes do corpo","Esportes","Material escolar","Profissões","Cidades","Roupas","Meios de transporte","Desenhos animados","Objetos da cozinha","Coisas da casa","Instrumentos musicais","Bichos da fazenda","Lanches e doces"];
 const DIFICIL=["Países","Esportes olímpicos","Programas de TV","Atores e atrizes","Marcas","Legumes e verduras","Capitais","Rios e mares","Insetos","Filmes","Cantores e bandas","Ferramentas","Ossos e músculos","Plantas e flores","Times de futebol","Personagens de livros","Aves","Pratos típicos"];
 let TEMPO=10; const META=3;

@@ -1,0 +1,16 @@
+{
+  "name": "ativamente",
+  "version": "1.3.0",
+  "private": true,
+  "scripts": {
+    "build:www": "node scripts/build-www.js",
+    "assets:android": "npx --yes @capacitor/assets@3.0.5 generate --android"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.0",
+    "@capacitor/android": "8.5.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.0"
+  }
+}

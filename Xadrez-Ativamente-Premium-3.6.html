@@ -953,6 +953,15 @@ body.theme-classic .pc.b,body.theme-basic2d .pc.b{
 }
 </style>
 <link rel="stylesheet" href="./responsivo-dispositivos.css">
+<script src="ajustes.js"></script>
+<script src="i18n.js"></script>
+<script src="i18n-xadrez.js"></script>
+<script>
+/* Ativamente: o idioma da plataforma comanda o seletor próprio do Xadrez */
+(function(){var I=window.AtivamenteI18n;if(!I)return;var K="xadrezativamente.v1";
+try{var d=JSON.parse(localStorage.getItem(K)||"{}");d.settings=d.settings||{};d.settings.lang=I.idioma;localStorage.setItem(K,JSON.stringify(d))}catch(e){}
+document.addEventListener("click",function(e){var b=e.target&&e.target.closest&&e.target.closest(".lang-btn");if(b&&b.dataset.lang!==I.idioma){I.definir(b.dataset.lang);setTimeout(function(){location.reload()},150)}});})();
+</script>
 </head>
 <body>
 <div class="app">
@@ -1219,6 +1228,17 @@ body.theme-classic .pc.b,body.theme-basic2d .pc.b{
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 
+/* Aviso rápido na tela (usado ao iniciar um desafio; a função não existia e gerava erro) */
+if(typeof window.toast!=="function"){
+  window.toast=function(msg){
+    let el=document.getElementById("ativamente-toast");
+    if(!el){el=document.createElement("div");el.id="ativamente-toast";
+      el.style.cssText="position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9999;max-width:90vw;padding:12px 20px;border-radius:16px;background:rgba(20,24,38,.94);color:#fff;font:700 16px/1.3 system-ui,sans-serif;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.35);pointer-events:none;transition:opacity .3s";
+      document.body.appendChild(el);}
+    el.textContent=msg;el.style.opacity="1";clearTimeout(el._t);el._t=setTimeout(()=>{el.style.opacity="0"},2600);
+  };
+}
+
 /* =========================================================
    VOLTAR DO CELULAR — NÃO FECHAR O JOGO
    Cria uma entrada de histórico para que o botão/gesto Voltar
@@ -1246,6 +1266,27 @@ const $$ = s => [...document.querySelectorAll(s)];
       G.paused=true;
       const pause=document.querySelector("#ov-pause");
       if(pause) pause.classList.add("show");
+      return;
+    }
+
+    /* Ativamente: fora da partida, Voltar leva ao início do xadrez
+       e, no início, pergunta se quer voltar ao menu da plataforma. */
+    const home=document.querySelector("#screen-home");
+    if(home && !home.classList.contains("active") && typeof show==="function"){
+      show("home");
+      if(typeof refreshHome==="function") try{refreshHome()}catch(e){}
+      return;
+    }
+    if(window.parent && window.parent!==window){
+      if(window.confirm("Deseja sair deste jogo e voltar ao menu do Ativamente?")){
+        window.parent.postMessage({type:"ATIVAMENTE_BACK"},"*");
+      }
+    }
+  });
+  /* Ativamente: Esc no computador funciona como Voltar */
+  addEventListener("keydown",e=>{
+    if(e.key==="Escape" && window.parent && window.parent!==window){
+      e.preventDefault(); history.back();
     }
   });
 })();

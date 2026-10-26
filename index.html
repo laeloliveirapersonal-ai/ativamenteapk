@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#070c1e">
 <link rel="manifest" href="manifest.json">
+<script src="ajustes.js"></script>
+<script src="i18n.js"></script>
+<script src="i18n-menu.js"></script>
 <title>Ativamente - Jogos Educativos</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -247,12 +250,37 @@ header {
 
 </style>
 <link rel="stylesheet" href="./responsivo-dispositivos.css">
+<style>
+/* ---------- seletor de idioma ---------- */
+.nav-top { position: relative; }
+.lang-toggle { position:absolute; right:0; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:.3rem; min-height:44px; padding:.45rem .8rem; border-radius:999px; border:1px solid #e1dcf6; background:#fff; color:#4f479f; font:inherit; font-size:.85rem; font-weight:900; cursor:pointer; box-shadow:0 4px 12px rgba(45,42,74,.06); }
+.lang-toggle span { font-size:1.15rem; }
+.lang-sheet { position:fixed; inset:0; z-index:60; background:rgba(45,42,74,.45); display:flex; align-items:flex-end; justify-content:center; padding:1rem; padding-bottom:max(1rem, env(safe-area-inset-bottom)); }
+.lang-sheet[hidden] { display:none; }
+.lang-card { width:min(420px,100%); background:#fff; border-radius:24px; padding:1.3rem; box-shadow:0 20px 50px rgba(45,42,74,.25); display:grid; gap:.6rem; }
+.lang-card h2 { margin:0 0 .3rem; font-size:1.2rem; font-weight:900; color:#2d2a4a; text-align:center; }
+.lang-option { display:flex; align-items:center; gap:.8rem; min-height:58px; padding:.8rem 1rem; border-radius:16px; border:2px solid #ece8fa; background:#faf9ff; color:#2d2a4a; font:inherit; font-size:1.1rem; font-weight:800; cursor:pointer; text-align:left; }
+.lang-option span { font-size:1.6rem; }
+.lang-option.on { border-color:#7c6fe0; background:#f1eefe; }
+.lang-card { max-height:calc(100dvh - 2rem); overflow-y:auto; }
+.aj-rotulo { margin:.5rem 0 0; font-size:.95rem; font-weight:900; color:#4f479f; }
+.aj-dica { margin:.3rem 0 0; font-size:.85rem; color:#77758f; text-align:center; }
+.aj-langs { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; }
+.aj-langs .lang-option { flex-direction:column; gap:.2rem; justify-content:center; text-align:center; padding:.6rem .3rem; font-size:.95rem; min-height:72px; }
+.aj-seg { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:.5rem; }
+.aj-seg button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.15rem; min-height:64px; padding:.5rem .3rem; border-radius:16px; border:2px solid #ece8fa; background:#faf9ff; color:#2d2a4a; font:inherit; font-size:.9rem; font-weight:800; cursor:pointer; line-height:1.15; }
+.aj-seg button b { font-size:1.3rem; line-height:1; }
+.aj-seg button.on { border-color:#7c6fe0; background:#f1eefe; color:#4f479f; }
+.aj-fechar { min-height:52px; border:0; border-radius:16px; background:#7c6fe0; color:#fff; font:inherit; font-size:1.05rem; font-weight:900; cursor:pointer; }
+.lang-close { min-height:48px; border:0; border-radius:14px; background:transparent; color:#77758f; font:inherit; font-weight:800; cursor:pointer; }
+</style>
 </head>
 
 <body>
 <header>
   <div class="nav-top">
-    <img src="logo.png" alt="Ativamente — Jogos Educativos" class="brand-logo">
+    <img src="logo.png" alt="Ativamente — Jogos Educativos" class="brand-logo" id="logoMarca">
+    <button id="btnIdioma" class="lang-toggle" type="button" aria-label="Ajustes" aria-haspopup="dialog"><span aria-hidden="true">⚙️</span><b id="idiomaSigla" translate="no">PT</b></button>
   </div>
   <div class="search-box">
     <span>🔍</span>
@@ -291,6 +319,37 @@ header {
   </div>
 </main>
 
+<div id="painelIdioma" class="lang-sheet" hidden>
+  <div class="lang-card" role="dialog" aria-modal="true" aria-labelledby="tituloIdioma">
+    <h2 id="tituloIdioma">⚙️ Ajustes</h2>
+    <p class="aj-rotulo">🌐 Idioma</p>
+    <div class="aj-langs" data-atv-fixo>
+      <button type="button" class="lang-option" data-lang="pt" translate="no"><span>🇧🇷</span>Português</button>
+      <button type="button" class="lang-option" data-lang="en" translate="no"><span>🇺🇸</span>English</button>
+      <button type="button" class="lang-option" data-lang="es" translate="no"><span>🇪🇸</span>Español</button>
+    </div>
+    <p class="aj-rotulo">🔠 Tamanho do texto</p>
+    <div class="aj-seg" data-aj="texto">
+      <button type="button" data-v="normal"><b style="font-size:1rem">A</b>Normal</button>
+      <button type="button" data-v="grande"><b style="font-size:1.25rem">A</b>Grande</button>
+      <button type="button" data-v="maior"><b style="font-size:1.5rem">A</b>Muito grande</button>
+    </div>
+    <p class="aj-rotulo">🔊 Sons</p>
+    <div class="aj-seg" data-aj="som">
+      <button type="button" data-v="on"><b>🔊</b>Ligados</button>
+      <button type="button" data-v="off"><b>🔇</b>Desligados</button>
+    </div>
+    <p class="aj-rotulo">✨ Animações</p>
+    <div class="aj-seg" data-aj="anim">
+      <button type="button" data-v="normal"><b>✨</b>Normais</button>
+      <button type="button" data-v="reduzida"><b>🐢</b>Reduzidas</button>
+    </div>
+    <p class="aj-dica">Os ajustes valem para o menu e para todos os jogos.</p>
+    <button type="button" class="lang-close aj-restaurar" id="restaurarAjustes">↺ Restaurar padrão</button>
+    <button type="button" class="aj-fechar" id="fecharIdioma">Fechar</button>
+  </div>
+</div>
+
 <div id="player" aria-hidden="true">
   <header>
     <button id="voltar" type="button" aria-label="Voltar">←</button>
@@ -321,6 +380,8 @@ const JOGOS = [
   },
 {
     id: 'termo-solo',
+    oculto: true, // fora do menu por decisão do autor; o arquivo continua no app
+    idiomas: ['pt'],
     nome: 'Termo Solo',
     desc: 'Descubra a palavra de 5 letras',
     tags: 'palavras letras termo wordle linguagem raciocínio',
@@ -329,6 +390,8 @@ const JOGOS = [
   },
 {
     id: 'termo-duel',
+    oculto: true, // fora do menu por decisão do autor; o arquivo continua no app
+    idiomas: ['pt'],
     nome: 'Termo Duel',
     desc: 'Duelo de palavras entre 2 jogadores',
     tags: 'palavras letras termo wordle multiplayer',
@@ -401,6 +464,7 @@ const JOGOS = [
   },
 {
     id: 'jogo-das-palavras',
+    idiomas: ['pt'], // jogo de palavras em português: só aparece nesse idioma
     nome: 'Jogo das Palavras',
     desc: 'Monte palavras com letras e sílabas, usando pistas visuais',
     tags: 'palavras letras sílabas alfabetização vocabulário linguagem',
@@ -412,7 +476,14 @@ const JOGOS = [
 const lista=document.getElementById('lista');
 const busca=document.getElementById('busca');
 const player=document.getElementById('player');
-const frame=document.getElementById('frame');
+let frame=document.getElementById('frame');
+// Troca o iframe por um novo e vazio: assim o histórico dos jogos não fica
+// acumulado e o Voltar do Android responde no primeiro toque.
+function novoFrame() {
+  const f=document.createElement('iframe');
+  f.id='frame'; f.title='Jogo Ativamente'; f.setAttribute('allowfullscreen','');
+  frame.replaceWith(f); frame=f; return f;
+}
 const tituloJogo=document.getElementById('tituloJogo');
 const voltar=document.getElementById('voltar');
 const contadorJogos=document.getElementById('contadorJogos');
@@ -422,6 +493,7 @@ const chips=[...document.querySelectorAll('.filter-chip')];
 const favoritos=new Set(JSON.parse(localStorage.getItem('ativamente-favoritos')||'[]'));
 let filtroAtivo='todos';
 let jogoAtual=null;
+let chaveMenu=null;
 let recentes=JSON.parse(localStorage.getItem('ativamente-recentes')||'[]');
 
 function categoria(j) {
@@ -432,15 +504,18 @@ function categoria(j) {
 }
 function jogosVisiveis() {
   const termo=String(busca.value||'').toLowerCase().trim();
-  let itens=JOGOS.filter(j=>[j.nome,j.desc,j.tags||''].join(' ').toLowerCase().includes(termo));
+  const tr=s=>(window.AtivamenteI18n?AtivamenteI18n.t(s):s);
+  const lang=window.AtivamenteI18n?AtivamenteI18n.idioma:'pt';
+  let itens=JOGOS.filter(j=>!j.oculto&&(!j.idiomas||j.idiomas.includes(lang)));
+  itens=itens.filter(j=>[j.nome,j.desc,tr(j.nome),tr(j.desc),j.tags||''].join(' ').toLowerCase().includes(termo));
   if(filtroAtivo==='favoritos') itens=itens.filter(j=>favoritos.has(j.id));
   else if(filtroAtivo!=='todos') itens=itens.filter(j=>categoria(j)===filtroAtivo);
   if(ordenar.value==='recentes') {
     itens.sort((a,b)=>{
       const ai=recentes.indexOf(a.id), bi=recentes.indexOf(b.id);
-      return (ai<0?999:ai)-(bi<0?999:bi) || a.nome.localeCompare(b.nome,'pt-BR');
+      return (ai<0?999:ai)-(bi<0?999:bi) || tr(a.nome).localeCompare(tr(b.nome),lang);
     });
-  } else itens.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  } else itens.sort((a,b)=>tr(a.nome).localeCompare(tr(b.nome),lang));
   return itens;
 }
 function salvarFavoritos() {
@@ -467,25 +542,43 @@ function renderizar() {
     </article>`).join('');
 }
 function abrirJogo(jogo) {
-  try { history.pushState({ ativamentePlayer: true }, '', location.href); } catch (_) {}
   if(!jogo) return;
+  try {
+    if(!(history.state && history.state.ativamentePlayer)) {
+      chaveMenu=(window.navigation && navigation.currentEntry) ? navigation.currentEntry.key : null;
+      history.pushState({ ativamentePlayer: true }, '', location.href);
+    }
+  } catch (_) {}
   jogoAtual=jogo;
   tituloJogo.textContent=jogo.nome;
-  frame.src=BASE+jogo.arquivo;
+  novoFrame().src=BASE+jogo.arquivo+(window.AtivamenteAjustes?(jogo.arquivo.indexOf('?')<0?'?':'&')+AtivamenteAjustes.query():'');
   player.classList.add('aberto');
   player.setAttribute('aria-hidden','false');
   document.body.style.overflow='hidden';
   recentes=[jogo.id,...recentes.filter(id=>id!==jogo.id)].slice(0,20);
   localStorage.setItem('ativamente-recentes',JSON.stringify(recentes));
 }
-function fecharJogo() {
+function fecharJogo(veioDoHistorico) {
+  const estavaAberto=player.classList.contains('aberto');
   player.classList.remove('aberto');
   player.setAttribute('aria-hidden','true');
-  frame.src='';
+  novoFrame();
   document.body.style.overflow='';
   tituloJogo.textContent='';
   jogoAtual=null;
   renderizar();
+  // Fechou pelo botão ← ou pelo jogo: volta o histórico até o menu, pulando
+  // as entradas que o jogo criou, para o Voltar do Android não ficar "morto".
+  if(estavaAberto && !veioDoHistorico) {
+    try {
+      if(window.navigation && chaveMenu && navigation.currentEntry && navigation.currentEntry.key!==chaveMenu) {
+        navigation.traverseTo(chaveMenu).finished.catch(()=>{});
+      } else if(history.state && history.state.ativamentePlayer) {
+        history.back();
+      }
+    } catch (_) {}
+  }
+  chaveMenu=null;
 }
 lista.addEventListener('click',e=>{
   const fav=e.target.closest('[data-favorite]');
@@ -505,7 +598,7 @@ lista.addEventListener('keydown',e=>{
   if(!card) return;
   e.preventDefault(); abrirJogo(JOGOS.find(j=>j.id===card.dataset.id));
 });
-voltar.addEventListener('click',fecharJogo);
+voltar.addEventListener('click',()=>fecharJogo(false));
 busca.addEventListener('input',renderizar);
 ordenar.addEventListener('change',renderizar);
 chips.forEach(chip=>chip.addEventListener('click',()=>{
@@ -518,7 +611,7 @@ document.getElementById('limparFiltros').addEventListener('click',()=>{
   chips.forEach(c=>{const active=c.dataset.filter==='todos';c.classList.toggle('active',active);c.setAttribute('aria-pressed',String(active));});
   renderizar();
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&player.classList.contains('aberto')) fecharJogo();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&player.classList.contains('aberto')) fecharJogo(false);});
 renderizar();
 
 if('serviceWorker' in navigator) {
@@ -531,15 +624,73 @@ if('serviceWorker' in navigator) {
 
 </script>
 
+<script id="ativamente-idioma-menu">
+(function () {
+  const I = window.AtivamenteI18n; if (!I) return;
+  const A = window.AtivamenteAjustes;
+  // Primeira abertura: usa o idioma do aparelho e salva, para todos os jogos seguirem
+  if (!I.salvo()) I.definir(I.doAparelho());
+  const painel = document.getElementById('painelIdioma');
+  const botao = document.getElementById('btnIdioma');
+  const sigla = document.getElementById('idiomaSigla');
+  // Logo com a linha "Jogos Educativos" no idioma escolhido (a marca Ativamente não muda)
+  const LOGOS = { pt: 'logo.png', en: 'logo-en.png', es: 'logo-es.png' };
+  const logoMarca = document.getElementById('logoMarca');
+  function trocarLogo() {
+    const novo = LOGOS[I.idioma] || LOGOS.pt;
+    if (logoMarca && logoMarca.getAttribute('src') !== novo) logoMarca.setAttribute('src', novo);
+  }
+  window.addEventListener('ativamente-idioma', trocarLogo);
+  function marcar() {
+    trocarLogo();
+    sigla.textContent = I.idioma.toUpperCase();
+    painel.querySelectorAll('.lang-option').forEach(b => b.classList.toggle('on', b.dataset.lang === I.idioma));
+    const aj = A ? A.ler() : {};
+    painel.querySelectorAll('.aj-seg').forEach(g => g.querySelectorAll('button').forEach(b => {
+      const on = aj[g.dataset.aj] === b.dataset.v;
+      b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }));
+  }
+  function abrir() { marcar(); painel.hidden = false; const on = painel.querySelector('.lang-option.on'); if (on) on.focus(); }
+  function fechar() { painel.hidden = true; botao.focus(); }
+  function recarregarAberto() {
+    // Texto, som e animações valem desde o carregamento: recarrega o menu e volta ao painel
+    try { sessionStorage.setItem('ativamente-reabrir-ajustes', '1'); } catch (e) {}
+    location.reload();
+  }
+  botao.addEventListener('click', abrir);
+  document.getElementById('fecharIdioma').addEventListener('click', fechar);
+  document.getElementById('restaurarAjustes').addEventListener('click', () => {
+    if (!A) return;
+    const atual = A.ler(), p = A.PADRAO;
+    if (Object.keys(p).some(k => atual[k] !== p[k])) { A.salvar(p); recarregarAberto(); }
+  });
+  painel.addEventListener('click', e => {
+    if (e.target === painel) { fechar(); return; }
+    const op = e.target.closest('.lang-option');
+    if (op) { I.definir(op.dataset.lang); marcar(); renderizar(); return; }
+    const b = e.target.closest('.aj-seg button'); if (!b || !A) return;
+    const k = b.closest('.aj-seg').dataset.aj;
+    if (A.ler()[k] === b.dataset.v) return;
+    A.salvar({ [k]: b.dataset.v }); recarregarAberto();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !painel.hidden) fechar(); });
+  marcar(); renderizar();
+  try {
+    if (sessionStorage.getItem('ativamente-reabrir-ajustes')) { sessionStorage.removeItem('ativamente-reabrir-ajustes'); abrir(); }
+  } catch (e) {}
+})();
+</script>
+
 <script id="ativamente-parent-back-navigation">
 (function () {
   window.addEventListener('message', function (event) {
-    if (event && event.data && event.data.type === 'ATIVAMENTE_BACK') fecharJogo();
+    if (event && event.data && event.data.type === 'ATIVAMENTE_BACK') fecharJogo(false);
   });
   window.addEventListener('popstate', function () {
     const player = document.getElementById('player');
     if (player && (player.classList.contains('aberto') || player.classList.contains('active'))) {
-      fecharJogo();
+      fecharJogo(true);
     }
   });
 })();

@@ -1,9 +1,12 @@
-name: Gerar AAB Play Store
+name: Gerar APK e AAB
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: write   # necessário para publicar a Release com os arquivos
 
 jobs:
   build:
@@ -13,31 +16,99 @@ jobs:
       - name: Baixar código
         uses: actions/checkout@v4
 
-      - name: Configurar Java 17
+      - name: Configurar Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
-      - name: Compilar AAB
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Gerar listas de palavras do Termo (fserb/pt-br, MIT)
+        run: node scripts/gerar-palavras.js
+
+      - name: Copiar arquivos web para www
+        run: npm run build:www
+
+      - name: Criar projeto Android (Capacitor)
         run: |
-          if [ -f "package.json" ]; then
-            npm install
-            npx cap sync android || true
-          fi
-          if [ -d "android" ]; then
-            cd android
-            chmod +x gradlew
-            ./gradlew bundleRelease
-          fi
+          npx cap add android
+          npx cap sync android
 
-      - name: Disponibilizar AAB para download
+      - name: Gerar ícone e tela de abertura (pasta assets/)
+        run: npm run assets:android
+
+      - name: Definir versão do app
+        run: |
+          # versionCode precisa ser maior que o último enviado (o v1.2 tinha versionCode 4)
+          CODE=$(( ${{ github.run_number }} + 4 ))
+          sed -i "s/versionCode [0-9]*/versionCode $CODE/" android/app/build.gradle
+          sed -i "s/versionName \"[^\"]*\"/versionName \"1.3.$CODE\"/" android/app/build.gradle
+          grep -n "versionCode\|versionName" android/app/build.gradle
+
+      - name: Compilar AAB e APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease assembleRelease assembleDebug
+
+      - name: Assinar AAB e APK
+        id: assinar
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          CODE=$(( ${{ github.run_number }} + 4 ))
+          VERSAO="1.3.$CODE"
+          echo "versao=$VERSAO" >> "$GITHUB_OUTPUT"
+          mkdir -p saida
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::Secrets de assinatura não configurados. Saem só o AAB sem assinatura e o APK de teste (debug)."
+            cp android/app/build/outputs/bundle/release/app-release.aab "saida/Ativamente-$VERSAO-SEM-ASSINATURA.aab"
+            cp android/app/build/outputs/apk/debug/app-debug.apk "saida/Ativamente-$VERSAO-teste.apk"
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+
+          # AAB para a Play Store
+          jarsigner -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore release.keystore \
+            -storepass "$KEYSTORE_PASSWORD" -keypass "$KEY_PASSWORD" \
+            android/app/build/outputs/bundle/release/app-release.aab "$KEY_ALIAS"
+          cp android/app/build/outputs/bundle/release/app-release.aab "saida/Ativamente-$VERSAO-PlayStore.aab"
+
+          # APK para instalar direto no celular (mesma assinatura)
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/zipalign" -p -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk apk-alinhado.apk
+          "$BT/apksigner" sign --ks release.keystore \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" --key-pass "pass:$KEY_PASSWORD" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --out "saida/Ativamente-$VERSAO.apk" apk-alinhado.apk
+          "$BT/apksigner" verify "saida/Ativamente-$VERSAO.apk"
+          rm -f release.keystore apk-alinhado.apk
+          ls -la saida
+
+      - name: Disponibilizar para download (aba Actions)
         uses: actions/upload-artifact@v4
         with:
-          name: Ativamente-PlayStore-AAB
-          path: android/app/build/outputs/bundle/release/*.aab
+          name: Ativamente-${{ steps.assinar.outputs.versao }}-APK-e-AAB
+          path: saida/*
+          if-no-files-found: error
+
+      - name: Publicar na área Releases (link fixo para baixar no celular)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.assinar.outputs.versao }}
+          name: Ativamente ${{ steps.assinar.outputs.versao }}
+          body: |
+            APK: instalar direto no celular para testar.
+            AAB: enviar na Play Console (teste fechado ou produção).
+          files: saida/*

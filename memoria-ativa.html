@@ -41,6 +41,9 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 @media(max-width:500px){.pills{grid-template-columns:repeat(2,1fr)}}
 </style>
 <link rel="stylesheet" href="./responsivo-dispositivos.css">
+<script src="ajustes.js"></script>
+<script src="i18n.js"></script>
+<script src="i18n-memoria-ativa.js"></script>
 </head>
 <body>
 <div class="app">
@@ -97,7 +100,7 @@ const DATA={
  body:[["👁️","Olho"],["👂","Orelha"],["👃","Nariz"],["👄","Boca"],["✋","Mão"],["🦶","Pé"],["🧠","Cérebro"],["❤️","Coração"],["👀","Olhos"],["🦵","Perna"]]
 };
 const THEMEINFO=[["animals","🐶","Animais"],["colors","🎨","Cores"],["shapes","🔷","Formas"],["body","🧍","Corpo"]];
-let mode="classic",pairs=6,timeLimit=90,theme="animals",deck=[],first=null,second=null,lock=false,found=0,attempts=0,turn=1,scores=[0,0],seconds=0,timer=null;
+let mode="classic",pairs=6,timeLimit=90,theme="animals",deck=[],first=null,second=null,lock=false,found=0,attempts=0,turn=1,scores=[0,0],seconds=0,timer=null,gen=0;
 
 const themesEl=document.getElementById("themes");
 THEMEINFO.forEach((t,i)=>{const b=document.createElement("button");b.className="theme"+(i===0?" on":"");b.innerHTML=`<span class="em">${t[1]}</span><span class="nm">${t[2]}</span>`;b.onclick=()=>{theme=t[0];document.querySelectorAll(".theme").forEach(x=>x.classList.remove("on"));b.classList.add("on")};themesEl.appendChild(b)});
@@ -108,7 +111,7 @@ function setPairs(n,b){pairs=n;document.querySelectorAll("[data-pairs]").forEach
 function setTime(n,b){timeLimit=n;b.parentElement.querySelectorAll(".pill").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
 function shuffle(a){for(let i=a.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function startGame(){
- clearInterval(timer);found=0;attempts=0;turn=1;scores=[0,0];seconds=0;first=null;second=null;lock=false;
+ clearInterval(timer);gen++;found=0;attempts=0;turn=1;scores=[0,0];seconds=0;first=null;second=null;lock=false;
  let base=DATA[theme].slice(0,pairs);deck=shuffle([...base,...base]);
  show("game");
  document.getElementById("s1label").textContent=mode==="duel"?"Jogador 1":"Pares";
@@ -135,7 +138,7 @@ function flip(c,i){
  c.classList.add("flipped");
  if(!first){first={c,i};return}
  second={c,i};lock=true;attempts++;document.getElementById("s2").textContent=mode==="duel"?scores[1]:attempts;
- setTimeout(check,420);
+ {const g=gen;setTimeout(()=>{if(g===gen)check()},420)}
 }
 function check(){
  if(deck[first.i][0]===deck[second.i][0]){
@@ -145,18 +148,18 @@ function check(){
    reset();
    if(found===pairs)finish(true);
  }else{
-   setTimeout(()=>{first.c.classList.remove("flipped");second.c.classList.remove("flipped");reset();if(mode==="duel"){turn=turn===1?2:1;updateTurn()}},500)
+   {const g=gen;setTimeout(()=>{if(g!==gen)return;first.c.classList.remove("flipped");second.c.classList.remove("flipped");reset();if(mode==="duel"){turn=turn===1?2:1;updateTurn()}},500)}
  }
 }
 function reset(){first=null;second=null;lock=false}
 function updateTurn(){const t=document.getElementById("turn");t.textContent="🎯 Vez do Jogador "+turn;t.classList.toggle("p2",turn===2)}
 function finish(win){
- clearInterval(timer);lock=true;
+ clearInterval(timer);gen++;lock=true;
  setTimeout(()=>{show("result");if(mode==="duel"){let title=scores[0]===scores[1]?"Empate! 🤝":scores[0]>scores[1]?"Jogador 1 venceu! 🏆":"Jogador 2 venceu! 🏆";document.getElementById("rtitle").textContent=title;document.getElementById("rtext").textContent=`Jogador 1: ${scores[0]} pares • Jogador 2: ${scores[1]} pares`;}
  else if(mode==="timed"&&!win){document.getElementById("rtitle").textContent="Tempo esgotado! ⏱️";document.getElementById("rtext").textContent=`Você encontrou ${found} de ${pairs} pares.`}
  else {document.getElementById("rtitle").textContent="Parabéns! 🎉";document.getElementById("rtext").textContent=`Você encontrou todos os ${pairs} pares em ${attempts} tentativas.`}},250)
 }
-function goHome(){clearInterval(timer);show("home")}
+function goHome(){clearInterval(timer);gen++;reset();show("home")}
 window.addEventListener("resize",()=>{if(document.getElementById("game").classList.contains("active"))render()});
 </script>
 

@@ -3,7 +3,7 @@
 // Offline + atualização automática
 // ==========================================
 
-const CACHE = 'ativamente-pastel-v9';
+const CACHE = 'ativamente-pastel-v16';
 
 const ARQUIVOS = [
   "./",
@@ -12,6 +12,15 @@ const ARQUIVOS = [
   "./responsivo-dispositivos.css",
   "./manifest.json",
   "./logo.png",
+  "./ajustes.js",
+  "./logo-en.png",
+  "./logo-es.png",
+  "./logo-en.png",
+  "./logo-es.png",
+  "./palavras-termo.js",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-maskable-512.png",
   "./destrava.html",
   "./trava-letras.html",
   "./termo-solo.html",
@@ -24,12 +33,18 @@ const ARQUIVOS = [
   "./quebra-cabeca.html",
   "./conhecendo-o-corpo.html",
   "./Xadrez-Ativamente-Premium-3.6.html",
-  "./jogo-das-palavras/index.html",
-  "./jogo-das-palavras/styles.css",
-  "./jogo-das-palavras/app.js",
-  "./jogo-das-palavras/manifest.json",
-  "./jogo-das-palavras/logo-jogo-das-palavras.png",
-  "./jogo-das-palavras/sw.js"
+  "./i18n-conhecendo-o-corpo.js",
+  "./i18n-cores-setas.js",
+  "./i18n-damas.js",
+  "./i18n-destrava.js",
+  "./i18n-genius-square.js",
+  "./i18n-memoria-ativa.js",
+  "./i18n-menu.js",
+  "./i18n-quebra-cabeca.js",
+  "./i18n-setas-4direcoes.js",
+  "./i18n-trava-letras.js",
+  "./i18n-xadrez.js",
+  "./i18n.js"
 ];
 
 
@@ -91,53 +106,29 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
 
-  // Apenas requisições GET
-  if (event.request.method !== 'GET') {
-    return;
-  }
+  if (event.request.method !== 'GET') return;
+
+  // Jogos abertos pelo menu levam os ajustes no endereço (?atv-...):
+  // no próprio site, guarda e procura sempre a versão sem esses parâmetros
+  const url = new URL(event.request.url);
+  const local = url.origin === self.location.origin;
+  if (local) url.search = '';
+  const chave = local ? url.href : event.request;
 
   event.respondWith(
+    caches.match(chave, { ignoreSearch: local }).then(cached => {
 
-    fetch(event.request)
-
-      .then(response => {
-
-        // ======================================
-        // ONLINE
-        // ======================================
-
-        if (
-          response &&
-          response.status === 200
-        ) {
-
+      // Atualiza em segundo plano (stale-while-revalidate)
+      const rede = fetch(event.request).then(response => {
+        if (response && response.status === 200) {
           const copy = response.clone();
-
-          caches.open(CACHE).then(cache => {
-
-            cache.put(
-              event.request,
-              copy
-            );
-
-          });
-
+          caches.open(CACHE).then(cache => cache.put(chave, copy));
         }
-
         return response;
+      }).catch(() => cached || caches.match('./index.html'));
 
-      })
-
-      .catch(() => {
-
-        // ======================================
-        // OFFLINE
-        // ======================================
-
-        return caches.match(event.request);
-
-      })
-
+      return cached || rede;
+    })
   );
 
 });
