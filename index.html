@@ -28,6 +28,14 @@
   --radius-lg: 24px;
   --radius-md: 16px;
 }
+:root {
+  /* Áreas das barras do sistema (Android 15+ desenha o app por baixo delas).
+     O Capacitor 8 injeta --safe-area-inset-*; env() fica como reserva. */
+  --sa-t: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --sa-b: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --sa-l: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --sa-r: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+}
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { min-height: 100%; background: var(--bg-dark); }
 body {
@@ -39,11 +47,13 @@ body {
     #fdfcff;
   background-attachment: fixed;
   color: var(--text-main);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--sa-b);
+  padding-left: var(--sa-l);
+  padding-right: var(--sa-r);
   min-height: 100vh;
 }
 header {
-  padding: 1rem 1.2rem 1.15rem;
+  padding: calc(1rem + var(--sa-t)) 1.2rem 1.15rem;
   position: sticky;
   top: 0;
   background: rgba(253,252,255,.92);
@@ -156,11 +166,13 @@ header {
 #player {
   position: fixed; inset: 0; background: #fdfcff; display: none;
   flex-direction: column; z-index: 100;
+  /* o jogo fica sempre acima da barra de navegação do Android */
+  padding: 0 var(--sa-r) var(--sa-b) var(--sa-l);
 }
 #player.aberto { display: flex; }
 #player header {
   display: flex; flex-direction: row; align-items: center; gap: 1rem;
-  padding: .8rem 1rem; background: rgba(255,255,255,.96);
+  padding: calc(.8rem + var(--sa-t)) 1rem .8rem; background: rgba(255,255,255,.96);
   border-bottom: 1px solid #e7e3f7; box-shadow: 0 4px 16px rgba(45,42,74,.04);
 }
 #voltar {
@@ -171,6 +183,12 @@ header {
 #voltar:active { background: #e3defa; }
 #tituloJogo { font-weight: 800; font-size: 1rem; color: #302d4e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #frame { flex: 1; width: 100%; border: 0; background: #fff; }
+/* celular deitado: barra do jogo mais baixa para sobrar espaço para o jogo */
+@media (max-height: 500px) {
+  #player header { padding: calc(.3rem + var(--sa-t)) 1rem .3rem; gap: .7rem; }
+  #voltar { width: 36px; height: 36px; border-radius: 12px; }
+  #tituloJogo { font-size: .9rem; }
+}
 @media (min-width: 700px) {
   header { padding-left: max(1.2rem, calc((100vw - 1120px) / 2)); padding-right: max(1.2rem, calc((100vw - 1120px) / 2)); }
   .nav-top { margin-bottom: .9rem; }
@@ -255,7 +273,7 @@ header {
 .nav-top { position: relative; }
 .lang-toggle { position:absolute; right:0; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:.3rem; min-height:44px; padding:.45rem .8rem; border-radius:999px; border:1px solid #e1dcf6; background:#fff; color:#4f479f; font:inherit; font-size:.85rem; font-weight:900; cursor:pointer; box-shadow:0 4px 12px rgba(45,42,74,.06); }
 .lang-toggle span { font-size:1.15rem; }
-.lang-sheet { position:fixed; inset:0; z-index:60; background:rgba(45,42,74,.45); display:flex; align-items:flex-end; justify-content:center; padding:1rem; padding-bottom:max(1rem, env(safe-area-inset-bottom)); }
+.lang-sheet { position:fixed; inset:0; z-index:60; background:rgba(45,42,74,.45); display:flex; align-items:flex-end; justify-content:center; padding:1rem; padding-bottom:calc(1rem + var(--sa-b)); }
 .lang-sheet[hidden] { display:none; }
 .lang-card { width:min(420px,100%); background:#fff; border-radius:24px; padding:1.3rem; box-shadow:0 20px 50px rgba(45,42,74,.25); display:grid; gap:.6rem; }
 .lang-card h2 { margin:0 0 .3rem; font-size:1.2rem; font-weight:900; color:#2d2a4a; text-align:center; }

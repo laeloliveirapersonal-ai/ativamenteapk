@@ -54,6 +54,7 @@ html,body{margin:0;height:100%;background:radial-gradient(120% 80% at 50% 0,#2d2
 .code{display:flex;gap:6px;width:min(300px,100%)}.code input{flex:1;min-width:0;background:var(--hole);color:var(--fg);border:2px solid var(--line);border-radius:12px;padding:7px 10px;font:700 15px 'Baloo 2',system-ui,sans-serif}.code input:focus{outline:none;border-color:var(--acc)}
 .foot{display:flex;gap:8px}.hw{text-align:left;color:var(--mut);font-size:15px;line-height:1.3;padding-left:20px;margin:10px 0 0}.hw b{color:var(--fg)}
 @media(max-width:430px){.tp{height:48px}.home h1{font-size:40px}}
+@media(min-width:600px){#app{max-width:640px}.tp{height:76px}.ctl .btn{font-size:17px;padding:11px 6px}.dice .die{font-size:17px;padding:3px 12px}.info{font-size:16px}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
 </style>
 <link rel="stylesheet" href="./responsivo-dispositivos.css">
@@ -109,7 +110,7 @@ const E=(r,c)=>cells[r*N+c];
 function paint(){for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=board[r][c],e=E(r,c),was=e.classList.contains('piece');e.className='cell';e.style.background='';if(v&&v.t==='b')e.classList.add('blocker');if(v&&v.t==='p'){e.classList.add('piece');e.style.background=v.color;if(was)e.style.animation='none'}}
 let n=0;board.forEach(row=>row.forEach(v=>{if(v&&v.t==='p')n++}));$('prog').style.width=n/29*100+'%'}
 function mg(s,color,size,gap){const mr=Math.max(...s.map(x=>x[0])),mc=Math.max(...s.map(x=>x[1])),g=document.createElement('div');g.className='mg';g.style.gap=gap+'px';g.style.gridTemplateColumns=`repeat(${mc+1},${size}px)`;for(let r=0;r<=mr;r++)for(let c=0;c<=mc;c++){const q=document.createElement('div');q.className='mc';q.style.width=q.style.height=size+'px';q.style.background=s.some(x=>x[0]===r&&x[1]===c)?color:'transparent';if(q.style.background==='transparent')q.style.boxShadow='none';g.appendChild(q)}return g}
-function tray(){const el=$('tray');el.innerHTML='';P.forEach((p,i)=>{const d=document.createElement('div');d.className='tp'+(placed[i]?' placed':'')+(sel&&sel.idx===i?' sel':'');d.appendChild(mg(sel&&sel.idx===i?sel.cells:norm(p.s),p.c,innerWidth<430?8:11,2));d.onpointerdown=e=>drag(e,i);el.appendChild(d)});$('bRot').disabled=$('bFlip').disabled=!sel}
+function tray(){const el=$('tray');el.innerHTML='';P.forEach((p,i)=>{const d=document.createElement('div');d.className='tp'+(placed[i]?' placed':'')+(sel&&sel.idx===i?' sel':'');d.appendChild(mg(sel&&sel.idx===i?sel.cells:norm(p.s),p.c,innerWidth<430?8:innerWidth>=600?15:11,2));d.onpointerdown=e=>drag(e,i);el.appendChild(d)});$('bRot').disabled=$('bFlip').disabled=!sel}
 const info=t=>$('info').textContent=t;
 const canPlace=(s,r0,c0)=>s.every(([a,b])=>{const r=r0+a,c=c0+b;return r>=0&&r<N&&c>=0&&c<N&&!board[r][c]});
 function order(s){const cr=Math.max(...s.map(x=>x[0]))/2,cc=Math.max(...s.map(x=>x[1]))/2;return[...s].sort((a,b)=>Math.hypot(a[0]-cr,a[1]-cc)-Math.hypot(b[0]-cr,b[1]-cc))}

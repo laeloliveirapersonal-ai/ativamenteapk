@@ -3,7 +3,7 @@
 // Offline + atualização automática
 // ==========================================
 
-const CACHE = 'ativamente-pastel-v16';
+const CACHE = 'ativamente-pastel-v18';
 
 const ARQUIVOS = [
   "./",

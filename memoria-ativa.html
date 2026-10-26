@@ -13,6 +13,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
 button{font:inherit;border:0;cursor:pointer;color:inherit}
 .app{max-width:760px;height:100dvh;margin:auto;padding:12px 14px;overflow:hidden}
 .screen{display:none;height:100%;flex-direction:column;animation:up .25s ease}.screen.active{display:flex}
+/* telas de menu rolam quando a altura é pequena (celular deitado) */
+.screen:not(#game){overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 @keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .logo{text-align:center;font-size:clamp(32px,9vw,50px);font-weight:900;letter-spacing:-2px;margin-top:18px}.logo span{color:var(--primary)}
 .subtitle{text-align:center;color:var(--muted);font-size:14px;margin:8px 0 22px}
@@ -34,7 +36,7 @@ button{font:inherit;border:0;cursor:pointer;color:inherit}
 .boardwrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.board{display:grid;gap:8px;place-content:center}
 .card{background:none;padding:0;perspective:900px}.inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .4s}.card.flipped .inner,.card.matched .inner{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.back{background:linear-gradient(145deg,#3b6dff,#7c4dff);box-shadow:0 5px 14px #3b6dff55;color:#fff;font-size:30px}.front{transform:rotateY(180deg);background:var(--panel);border:2px solid var(--line);box-shadow:0 5px 14px #1e326e22;padding:4px;gap:3px}.fig{font-size:34px;line-height:1}.name{font-size:10px;font-weight:900;color:var(--muted);text-align:center;line-height:1.05}.matched .front{background:#18b26b18;border-color:#18b26b88}
+.back{background:linear-gradient(145deg,#3b6dff,#7c4dff);box-shadow:0 5px 14px #3b6dff55;color:#fff;font-size:calc(var(--cs,70px)*.42)}.front{transform:rotateY(180deg);background:var(--panel);border:2px solid var(--line);box-shadow:0 5px 14px #1e326e22;padding:4px;gap:3px}.fig{font-size:calc(var(--cs,70px)*.46);line-height:1}.name{font-size:max(10px,calc(var(--cs,70px)*.14));font-weight:900;color:var(--muted);text-align:center;line-height:1.05}.matched .front{background:#18b26b18;border-color:#18b26b88}
 .bottom{display:flex;gap:9px;margin-top:10px}.bottom button{flex:1}
 .result{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.trophy{font-size:65px}.result h2{font-size:27px;margin:10px}.result p{color:var(--muted);line-height:1.5}.result .primary{margin-top:15px}.result .secondary{margin-top:10px;width:100%}
 .hidden{display:none!important}
@@ -130,8 +132,19 @@ function render(){
  const b=document.getElementById("board");b.innerHTML="";
  let cols=pairs<=4?4:pairs<=8?4:5;let size=70;
  if(window.innerWidth<500)size=pairs>=10?56:pairs>=8?62:68;
- b.style.gridTemplateColumns=`repeat(${cols},${size}px)`;b.style.gridAutoRows=`${size}px`;
- deck.forEach((item,i)=>{let c=document.createElement("button");c.className="card";c.style.width=size+"px";c.style.height=size+"px";c.innerHTML=`<div class="inner"><div class="face back">✦</div><div class="face front"><div class="fig">${item[0]}</div><div class="name">${item[1]}</div></div></div>`;c.onclick=()=>flip(c,i);b.appendChild(c)})
+ b.style.gridTemplateColumns=`repeat(${cols},${size}px)`;b.style.gridAutoRows=`${size}px`;b.style.setProperty("--cs",size+"px");
+ deck.forEach((item,i)=>{let c=document.createElement("button");c.className="card";c.style.width=size+"px";c.style.height=size+"px";c.innerHTML=`<div class="inner"><div class="face back">✦</div><div class="face front"><div class="fig">${item[0]}</div><div class="name">${item[1]}</div></div></div>`;c.onclick=()=>flip(c,i);b.appendChild(c)});
+ ajustarCartas()
+}
+// Cartas do tamanho que cabe na tela (celular, tablet, deitado ou em pé)
+function ajustarCartas(){
+ const b=document.getElementById("board"),wrap=b&&b.parentElement;if(!b||!wrap||!b.children.length)return;
+ const W=wrap.clientWidth,H=wrap.clientHeight;if(!W||!H)return;
+ const n=b.children.length,gap=8;let best=0,bc=4;
+ for(let c=2;c<=8;c++){const r=Math.ceil(n/c);const s=Math.min((W-(c-1)*gap)/c,(H-(r-1)*gap)/r);if(s>best){best=s;bc=c}}
+ const size=Math.max(44,Math.min(150,Math.floor(best)));
+ b.style.gridTemplateColumns=`repeat(${bc},${size}px)`;b.style.gridAutoRows=`${size}px`;b.style.setProperty("--cs",size+"px");
+ [...b.children].forEach(c=>{c.style.width=size+"px";c.style.height=size+"px"});
 }
 function flip(c,i){
  if(lock||c.classList.contains("flipped")||c.classList.contains("matched"))return;
@@ -160,7 +173,7 @@ function finish(win){
  else {document.getElementById("rtitle").textContent="Parabéns! 🎉";document.getElementById("rtext").textContent=`Você encontrou todos os ${pairs} pares em ${attempts} tentativas.`}},250)
 }
 function goHome(){clearInterval(timer);gen++;reset();show("home")}
-window.addEventListener("resize",()=>{if(document.getElementById("game").classList.contains("active"))render()});
+window.addEventListener("resize",()=>{if(document.getElementById("game").classList.contains("active"))ajustarCartas()});
 </script>
 
 <script id="ativamente-back-navigation">
