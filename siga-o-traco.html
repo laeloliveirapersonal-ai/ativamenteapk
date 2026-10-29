@@ -190,6 +190,25 @@ function preparar(){
   desenhar();
 }
 function caminho(pts,ate){g.beginPath();g.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<=ate;i++)g.lineTo(pts[i][0],pts[i][1]);}
+/* setinhas (triângulos) ao longo da estrada, apontando o sentido do traço.
+   Antes de começar elas deslizam devagar no sentido certo; vão sumindo onde a criança já passou. */
+function setas(){
+  const passo=Math.max(5,Math.round(tol*2.3/3)), s=tol*.44;
+  const anda=idx===0&&!tracando?Math.floor(Date.now()/90)%passo:0;
+  tracos.forEach((pts,t)=>{
+    if(t<atualT) return;
+    const ini=Math.round(tol*1.3/3)+(t===atualT?idx:0), fim=pts.length-1-Math.round(tol*1.3/3);
+    g.fillStyle=t===atualT?'rgba(131,54,196,.75)':'rgba(176,150,230,.5)';
+    for(let i=ini+((anda-ini)%passo+passo)%passo;i<fim;i+=passo){
+      const a=pts[Math.max(0,i-2)], c=pts[Math.min(pts.length-1,i+2)], dx=c[0]-a[0], dy=c[1]-a[1], d=Math.hypot(dx,dy);
+      if(d<.01) continue;
+      const ux=dx/d, uy=dy/d, [x,y]=pts[i];
+      g.beginPath(); g.moveTo(x+ux*s,y+uy*s);
+      g.lineTo(x-ux*s*.7-uy*s*.8,y-uy*s*.7+ux*s*.8); g.lineTo(x-ux*s*.7+uy*s*.8,y-uy*s*.7-ux*s*.8);
+      g.closePath(); g.fill();
+    }
+  });
+}
 function desenhar(){
   g.clearRect(0,0,W,H); g.lineCap='round'; g.lineJoin='round';
   if(forma.cat!=='formas'&&pauta){ // linhas do caderno: topo, meio e base
@@ -201,6 +220,7 @@ function desenhar(){
     caminho(pts,pts.length-1); g.setLineDash([2,12]); g.strokeStyle=t===atualT?'#b9a2ec':'#d9cdf3'; g.lineWidth=4; g.stroke(); g.setLineDash([]);
     if(t<atualT){caminho(pts,pts.length-1);g.strokeStyle='#ff6fa8';g.lineWidth=tol*.9;g.stroke();}
   });
+  setas(); // triângulos mostrando o sentido de cada traço
   const pts=tracos[atualT]; if(!pts) return;
   if(idx>0){const grad=g.createLinearGradient(pts[0][0],pts[0][1],pts[idx][0],pts[idx][1]);grad.addColorStop(0,'#ff6fa8');grad.addColorStop(1,'#b05cf0');
     caminho(pts,idx);g.strokeStyle=grad;g.lineWidth=tol*.9;g.stroke();}

@@ -41,6 +41,12 @@ jobs:
           npx cap add android
           npx cap sync android
 
+      - name: Permissão de compras no app (Google Play Faturamento)
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          grep -q "com.android.vending.BILLING" "$M" || sed -i 's#</manifest>#    <uses-permission android:name="com.android.vending.BILLING" />\n</manifest>#' "$M"
+          grep -n "BILLING" "$M"
+
       - name: Gerar ícone e tela de abertura (pasta assets/)
         run: npm run assets:android
 
