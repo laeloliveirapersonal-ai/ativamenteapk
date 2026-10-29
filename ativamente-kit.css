@@ -1,0 +1,99 @@
+/* ATIVAMENTE — base visual dos jogos novos (cada jogo define suas cores) */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+:root{
+  --bg:#f6f4ff; --bg2:#ece7ff; --card:#ffffff; --ink:#2b2550; --muted:#6d6890;
+  --pri:#7c6fe0; --pri-esc:#5b4fc4; --sec:#ff9f43; --ok:#2fbf71; --err:#ef4b5f;
+  --rad:22px; --sombra:0 10px 24px rgba(43,37,80,.12);
+  --fonte:'Nunito','Baloo 2','Fredoka',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{font-family:var(--fonte);color:var(--ink);background:linear-gradient(180deg,var(--bg),var(--bg2));
+  overflow-x:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+button{font-family:inherit;color:inherit}
+.tela{display:none;min-height:100%;flex-direction:column;padding:16px 16px 24px;max-width:720px;margin:0 auto}
+.tela.on{display:flex}
+
+/* Cabeçalho do jogo */
+.ak-topo{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.ak-topo h1,.ak-topo h2{flex:1;font-size:1.25rem;font-weight:900;line-height:1.15}
+.ak-icone{width:52px;height:52px;flex:0 0 52px;border-radius:16px;border:0;background:var(--card);
+  box-shadow:var(--sombra);font-size:1.5rem;font-weight:900;display:grid;place-items:center;cursor:pointer}
+.ak-icone:active{transform:scale(.94)}
+.ak-placar{min-width:64px;padding:8px 12px;border-radius:16px;background:var(--card);box-shadow:var(--sombra);
+  font-weight:900;text-align:center;font-size:1.05rem}
+
+/* Capa do jogo */
+.ak-capa{text-align:center;padding:10px 4px 18px}
+.ak-capa .ak-arte{width:min(62vw,240px);height:min(62vw,240px);margin:0 auto 8px;display:block}
+.ak-capa .ak-arte-img{width:min(86vw,360px);height:auto;aspect-ratio:420/345;object-fit:cover;border-radius:28px;box-shadow:var(--sombra)}
+.ak-capa h1{font-size:clamp(1.9rem,8vw,2.6rem);font-weight:900;line-height:1.05;color:var(--pri-esc);letter-spacing:-.5px}
+.ak-capa p{margin-top:8px;color:var(--muted);font-size:1.05rem;font-weight:700}
+
+/* Botões grandes */
+.ak-btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;padding:14px 20px;border:0;
+  border-radius:var(--rad);background:var(--pri);color:#fff;font-size:1.2rem;font-weight:900;cursor:pointer;
+  box-shadow:0 6px 0 var(--pri-esc),0 12px 20px rgba(0,0,0,.12);transition:transform .08s,box-shadow .08s;width:100%}
+.ak-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--pri-esc),0 6px 12px rgba(0,0,0,.12)}
+.ak-btn.sec{background:var(--card);color:var(--ink);box-shadow:0 6px 0 #d6d1ee,0 12px 20px rgba(0,0,0,.08)}
+.ak-btn.sec:active{box-shadow:0 2px 0 #d6d1ee}
+.ak-btn.laranja{background:var(--sec);box-shadow:0 6px 0 #d97a1c,0 12px 20px rgba(0,0,0,.12)}
+.ak-pilha{display:grid;gap:14px}
+
+/* Grade de fases / modos */
+.ak-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.ak-cartao{position:relative;border:0;border-radius:var(--rad);background:var(--card);box-shadow:var(--sombra);
+  padding:16px 12px 14px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:150px}
+.ak-cartao:active{transform:scale(.97)}
+.ak-cartao .emo{font-size:2.6rem;line-height:1}
+.ak-cartao b{font-size:1.05rem;font-weight:900;line-height:1.15}
+.ak-cartao small{color:var(--muted);font-weight:700;font-size:.85rem;line-height:1.2}
+.ak-cartao .num{position:absolute;top:8px;left:10px;font-size:.8rem;font-weight:900;color:var(--muted)}
+.ak-estrela{color:#d9d4ee;font-size:1.15rem}
+.ak-estrela.on{color:#ffc93c;text-shadow:0 2px 0 #e0a100}
+
+/* Seletor em pílulas */
+.ak-seg{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.ak-seg button{flex:1;min-width:90px;min-height:52px;border-radius:16px;border:3px solid transparent;background:var(--card);
+  box-shadow:var(--sombra);font-weight:900;font-size:1rem;cursor:pointer;padding:8px}
+.ak-seg button.on{border-color:var(--pri);color:var(--pri-esc);background:#fff}
+.ak-rotulo{font-weight:900;color:var(--muted);font-size:.95rem;margin:14px 0 8px;text-align:center;text-transform:uppercase;letter-spacing:.5px}
+
+/* Barra de progresso da rodada */
+.ak-barra{height:12px;border-radius:99px;background:rgba(0,0,0,.08);overflow:hidden;margin:4px 0 12px}
+.ak-barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pri),var(--sec));border-radius:99px;transition:width .3s}
+
+/* Pergunta */
+.ak-pergunta{font-size:clamp(1.25rem,5.4vw,1.6rem);font-weight:900;text-align:center;line-height:1.25;margin:6px 0 12px}
+
+/* Animações de resposta */
+.ak-certo{animation:akPulso .45s}
+.ak-errado{animation:akTreme .4s}
+@keyframes akPulso{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes akTreme{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+
+/* Janela de resultado */
+.ak-modal{position:fixed;inset:0;background:rgba(30,24,60,.55);display:grid;place-items:center;z-index:50;padding:18px;animation:akFade .2s}
+.ak-modal-card{width:min(440px,100%);background:var(--card);border-radius:28px;padding:24px 20px 20px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:akSobe .3s}
+.ak-modal-card h2{font-size:1.6rem;font-weight:900;margin:6px 0 8px}
+.ak-modal-texto{color:var(--muted);font-weight:700;font-size:1.05rem;line-height:1.4;margin-bottom:16px}
+.ak-modal-botoes{display:grid;gap:12px}
+.ak-estrelas-grandes .ak-estrela{font-size:3rem;margin:0 2px;display:inline-block;animation:akGira .5s backwards}
+.ak-estrelas-grandes .ak-estrela:nth-child(2){animation-delay:.15s}
+.ak-estrelas-grandes .ak-estrela:nth-child(3){animation-delay:.3s}
+@keyframes akFade{from{opacity:0}}
+@keyframes akSobe{from{transform:translateY(30px);opacity:0}}
+@keyframes akGira{from{transform:scale(0) rotate(-90deg)}}
+
+/* Confete */
+.ak-confete{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
+.ak-confete i{position:absolute;top:-20px;width:10px;height:16px;border-radius:3px;animation:akCai linear forwards}
+@keyframes akCai{to{top:110%;transform:rotate(720deg)}}
+
+/* Dica */
+.ak-dica{background:#fff8e1;border:2px dashed #f2c94c;border-radius:18px;padding:10px 14px;font-weight:800;color:#7a5b00;text-align:center;font-size:1rem;margin:8px 0}
+
+@media (min-width:600px){
+  .tela{padding:22px 24px 30px}
+  .ak-btn{font-size:1.35rem;min-height:72px}
+}

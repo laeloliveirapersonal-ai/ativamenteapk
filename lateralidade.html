@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Direita ou Esquerda</title>
+<script src="ajustes.js"></script>
+<link rel="stylesheet" href="ativamente-kit.css">
+<style>
+:root{--bg:#e9f7ff;--bg2:#fff3e6;--pri:#2f8ee6;--pri-esc:#1f6db8;--sec:#ff8a3d;--ink:#1d2f4d;--muted:#5d7290}
+.palco{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:250px;
+  background:#fff;border-radius:28px;box-shadow:var(--sombra);padding:12px;position:relative;margin-bottom:16px}
+.palco svg{width:min(78vw,300px);height:auto;max-height:42vh}
+.mao{height:min(38vh,300px);width:auto}
+.mao.espelho{transform:scaleX(-1)}
+.boneco{position:relative;display:inline-block;height:min(40vh,320px)}
+.boneco img{height:100%;width:auto;display:block}
+.boneco .item{position:absolute;top:58%;transform:translate(-50%,-50%);font-size:min(9vh,4.4rem);line-height:1;filter:drop-shadow(0 4px 4px rgba(0,0,0,.2))}
+.selo{position:absolute;top:12px;left:12px;background:var(--bg);border-radius:99px;padding:6px 12px;font-weight:900;font-size:.9rem;color:var(--pri-esc)}
+.cena{display:flex;align-items:flex-end;justify-content:center;gap:clamp(24px,10vw,70px);font-size:clamp(4.2rem,22vw,7rem);line-height:1;padding:30px 0 10px;width:100%;
+  background:linear-gradient(transparent 78%,#c7e9b4 78%);border-radius:20px}
+.respostas{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.respostas .ak-btn{min-height:96px;font-size:clamp(1.05rem,4.6vw,1.4rem);flex-direction:column;gap:2px}
+.respostas .seta{font-size:2.2rem;line-height:1}
+.b-esq{--pri:#3b7cf0;--pri-esc:#2556b8}
+.b-dir{--pri:#ff8a3d;--pri-esc:#d0611c}
+.respostas .ak-btn{background:var(--pri);box-shadow:0 6px 0 var(--pri-esc),0 12px 20px rgba(0,0,0,.12)}
+.respostas .ak-btn.mostra{outline:6px solid #2fbf71;outline-offset:3px}
+.respostas.trava .ak-btn{pointer-events:none}
+.feedback{min-height:34px;text-align:center;font-weight:900;font-size:1.2rem;margin:4px 0 8px}
+.feedback.ok{color:var(--ok)} .feedback.err{color:var(--err)}
+</style>
+</head>
+<body>
+
+<section class="tela on" id="inicio">
+  <div class="ak-capa">
+    <img class="ak-arte ak-arte-img" src="capa-lateralidade.webp" alt="">
+    <h1 data-t="titulo">Direita ou Esquerda</h1>
+    <p data-t="sub">Descubra os lados do corpo e do mundo</p>
+  </div>
+  <div class="ak-grade" id="fases"></div>
+</section>
+
+<section class="tela" id="jogo">
+  <div class="ak-topo">
+    <button class="ak-icone" id="btSair" aria-label="Menu">🏠</button>
+    <h2 id="nomeFase"></h2>
+    <button class="ak-icone" id="btDica" aria-label="Dica">💡</button>
+  </div>
+  <div class="ak-barra"><i id="barra"></i></div>
+  <div class="ak-pergunta" id="pergunta"></div>
+  <div class="palco" id="palco"></div>
+  <div class="feedback" id="feedback"></div>
+  <div class="respostas" id="respostas">
+    <button class="ak-btn b-esq" data-lado="E"><span class="seta">⬅</span><span data-t="esq">ESQUERDA</span></button>
+    <button class="ak-btn b-dir" data-lado="D"><span class="seta">➡</span><span data-t="dir">DIREITA</span></button>
+  </div>
+</section>
+
+<script src="ativamente-kit.js"></script>
+<script>
+(function(){
+const T = {
+  titulo:{pt:'Direita ou Esquerda',en:'Left or Right',es:'Derecha o Izquierda'},
+  sub:{pt:'Descubra os lados do corpo e do mundo',en:'Discover the sides of your body and the world',es:'Descubre los lados del cuerpo y del mundo'},
+  esq:{pt:'ESQUERDA',en:'LEFT',es:'IZQUIERDA'},
+  dir:{pt:'DIREITA',en:'RIGHT',es:'DERECHA'},
+  pMao:{pt:'Esta mão é a esquerda ou a direita?',en:'Is this the left hand or the right hand?',es:'¿Esta mano es la izquierda o la derecha?'},
+  pLugar:{pt:'{A} está à esquerda ou à direita {B}?',en:'Is {A} to the left or to the right of {B}?',es:'¿{A} está a la izquierda o a la derecha {B}?'},
+  pSegura:{pt:'Em qual mão está {I}?',en:'Which hand is holding {I}?',es:'¿En qué mano está {I}?'},
+  costas:{pt:'🔙 De costas',en:'🔙 From behind',es:'🔙 De espaldas'},
+  frente:{pt:'👀 De frente',en:'👀 Facing you',es:'👀 De frente'},
+  dorso:{pt:'✋ Costas da mão',en:'✋ Back of the hand',es:'✋ Dorso de la mano'},
+  palma:{pt:'🖐 Palma da mão',en:'🖐 Palm of the hand',es:'🖐 Palma de la mano'},
+  dMao:{pt:'Dica: coloque sua mão igual à do desenho e olhe para o polegar.',en:'Tip: put your hand just like the drawing and look at the thumb.',es:'Pista: pon tu mano igual que el dibujo y mira el pulgar.'},
+  dLugar:{pt:'Dica: estique os dois braços. Para que lado está o desenho?',en:'Tip: stretch out both arms. Which side is the picture on?',es:'Pista: estira los dos brazos. ¿Hacia qué lado está el dibujo?'},
+  dCostas:{pt:'Dica: ele está de costas, igual a você. A direita dele é a sua direita.',en:'Tip: the child is facing away, like you. Their right is your right.',es:'Pista: está de espaldas, igual que tú. Su derecha es tu derecha.'},
+  dFrente:{pt:'Dica: ele está de frente para você. A direita dele fica do seu lado esquerdo!',en:'Tip: the child is facing you. Their right is on your left side!',es:'Pista: está de frente a ti. ¡Su derecha queda a tu lado izquierdo!'},
+  certo:{pt:['Muito bem!','Isso mesmo!','Acertou!','Show!'],en:['Well done!','That\'s right!','Great!','Awesome!'],es:['¡Muy bien!','¡Eso es!','¡Correcto!','¡Genial!']},
+  errado:{pt:'Quase! Era a {L}.',en:'Almost! It was {L}.',es:'¡Casi! Era la {L}.'},
+  esqMin:{pt:'esquerda',en:'left',es:'izquierda'},
+  dirMin:{pt:'direita',en:'right',es:'derecha'},
+  fim:{pt:'Fase completa!',en:'Level complete!',es:'¡Nivel completo!'},
+  fimTxt:{pt:'Você acertou {A} de {N}.',en:'You got {A} out of {N}.',es:'Acertaste {A} de {N}.'},
+  denovo:{pt:'Jogar de novo',en:'Play again',es:'Jugar de nuevo'},
+  proxima:{pt:'Próxima fase ➡',en:'Next level ➡',es:'Siguiente nivel ➡'},
+  menu:{pt:'Escolher fase',en:'Choose level',es:'Elegir nivel'}
+};
+const FASES = [
+  {id:'maos1',emo:'✋',nome:{pt:'Minhas mãos',en:'My hands',es:'Mis manos'},desc:{pt:'Costas da mão',en:'Back of the hand',es:'Dorso de la mano'}},
+  {id:'maos2',emo:'🖐',nome:{pt:'Mãos de todo jeito',en:'Hands every way',es:'Manos de todo tipo'},desc:{pt:'Palma e costas',en:'Palm and back',es:'Palma y dorso'}},
+  {id:'lugar',emo:'🏠',nome:{pt:'Onde está?',en:'Where is it?',es:'¿Dónde está?'},desc:{pt:'Lado das coisas',en:'Sides of things',es:'Lado de las cosas'}},
+  {id:'costas',emo:'🎒',nome:{pt:'De costas',en:'From behind',es:'De espaldas'},desc:{pt:'Igual a você',en:'Just like you',es:'Igual que tú'}},
+  {id:'frente',emo:'🙂',nome:{pt:'De frente',en:'Facing you',es:'De frente'},desc:{pt:'Lado espelhado',en:'Mirror side',es:'Lado espejo'}},
+  {id:'mistura',emo:'🌀',nome:{pt:'Desafio',en:'Challenge',es:'Desafío'},desc:{pt:'Tudo misturado',en:'All mixed up',es:'Todo mezclado'}}
+];
+const OBJ = [
+  {e:'🐱',pt:['O gato','do gato'],en:['the cat','the cat'],es:['El gato','del gato']},
+  {e:'🏠',pt:['A casa','da casa'],en:['the house','the house'],es:['La casa','de la casa']},
+  {e:'🌳',pt:['A árvore','da árvore'],en:['the tree','the tree'],es:['El árbol','del árbol']},
+  {e:'🚗',pt:['O carro','do carro'],en:['the car','the car'],es:['El coche','del coche']},
+  {e:'⚽',pt:['A bola','da bola'],en:['the ball','the ball'],es:['La pelota','de la pelota']},
+  {e:'🐶',pt:['O cachorro','do cachorro'],en:['the dog','the dog'],es:['El perro','del perro']},
+  {e:'🍎',pt:['A maçã','da maçã'],en:['the apple','the apple'],es:['La manzana','de la manzana']},
+  {e:'🦋',pt:['A borboleta','da borboleta'],en:['the butterfly','the butterfly'],es:['La mariposa','de la mariposa']},
+  {e:'🐢',pt:['A tartaruga','da tartaruga'],en:['the turtle','the turtle'],es:['La tortuga','de la tortuga']},
+  {e:'🌻',pt:['A flor','da flor'],en:['the flower','the flower'],es:['La flor','de la flor']}
+];
+const ITENS = [
+  {e:'🎈',pt:'o balão',en:'the balloon',es:'el globo'},{e:'⚽',pt:'a bola',en:'the ball',es:'la pelota'},
+  {e:'🍦',pt:'o sorvete',en:'the ice cream',es:'el helado'},{e:'🌸',pt:'a flor',en:'the flower',es:'la flor'},
+  {e:'🧸',pt:'o ursinho',en:'the teddy bear',es:'el osito'},{e:'🍭',pt:'o pirulito',en:'the lollipop',es:'la piruleta'}
+];
+const PELES=['#f5d0b5','#e9b48f','#c68a64','#9b6748','#6e4a33'];
+const CABELOS=['#3a2a1f','#7a4b24','#e0b34a','#1d1d1d','#b5532d'];
+const CAMISAS=['#ff6b6b','#4fc3a1','#7c6fe0','#ffb547','#3ec1d3'];
+const RODADAS=10;
+const salvo=AK.salvo('lateralidade');
+let prog=salvo.ler(), fase=null, rodada=0, acertos=0, erros=0, atual=null;
+
+AK.traduzir(T); document.title=AK.t(T.titulo);
+const $=id=>document.getElementById(id);
+
+function desenharFases(){
+  $('fases').innerHTML=FASES.map((f,i)=>`<button class="ak-cartao" data-i="${i}"><span class="num">${i+1}</span>
+    <span class="emo">${f.emo}</span><b>${AK.t(f.nome)}</b><small>${AK.t(f.desc)}</small>
+    <span>${AK.estrelasHTML(prog[f.id]||0)}</span></button>`).join('');
+  $('fases').querySelectorAll('.ak-cartao').forEach(b=>b.onclick=()=>iniciar(+b.dataset.i));
+}
+
+/* ---------- Desenhos ---------- */
+// Sprites: mao-dorso = mão ESQUERDA vista pelas costas (polegar à direita da tela)
+//          mao-palma = mão ESQUERDA vista pela palma (polegar à esquerda da tela)
+// A mão direita é o mesmo desenho espelhado.
+function imgMao(lado,vista){
+  return `<img class="mao${lado==='D'?' espelho':''}" src="mao-${vista}.webp" alt="" draggable="false">`;
+}
+function imgCrianca(vista,mao,item){
+  const naDireitaDaTela = vista==='costas' ? mao==='D' : mao==='E';
+  return `<div class="boneco"><img src="crianca-${vista}.webp" alt="" draggable="false"><span class="item" style="left:${naDireitaDaTela?90:10}%">${item}</span></div>`;
+}
+function svgMao(lado,vista,pele){
+  // Desenho-base: polegar para a DIREITA da tela (mão esquerda vista pelas costas)
+  const polegarDireita=(lado==='E'&&vista==='dorso')||(lado==='D'&&vista==='palma');
+  const tom=vista==='palma'?clarear(pele,.12):pele, unha=clarear(pele,.35), linha=escurecer(pele,.25);
+  const dedos=[[58,74],[80,52],[102,44],[124,56]];
+  let s=`<rect x="70" y="196" width="62" height="44" rx="10" fill="#4f8de8"/><rect x="66" y="190" width="70" height="14" rx="7" fill="#3a6fc4"/>`;
+  s+=`<rect x="54" y="100" width="98" height="104" rx="34" fill="${tom}"/>`;
+  dedos.forEach(([x,y])=>{s+=`<rect x="${x}" y="${y}" width="22" height="${124-y}" rx="11" fill="${tom}"/>`;
+    if(vista==='dorso') s+=`<rect x="${x+4}" y="${y+4}" width="14" height="15" rx="6" fill="${unha}"/>`;});
+  s+=`<path d="M136 176 L174 118" stroke="${tom}" stroke-width="25" stroke-linecap="round"/>`;
+  if(vista==='dorso') s+=`<rect x="166" y="108" width="14" height="16" rx="6" fill="${unha}" transform="rotate(34 173 116)"/>`;
+  if(vista==='palma') s+=`<path d="M70 140 Q100 128 140 136" stroke="${linha}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M68 160 Q98 150 132 156" stroke="${linha}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M122 186 Q112 160 128 132" stroke="${linha}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  else s+=`<path d="M80 124 v6 M102 124 v6 M124 124 v6" stroke="${linha}" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>`;
+  const g=polegarDireita?s:`<g transform="translate(206 0) scale(-1 1)">${s}</g>`;
+  return `<svg viewBox="0 0 206 240" role="img">${g}</svg>`;
+}
+function svgCrianca(vista,mao,item,pele,cabelo,camisa){
+  // mão do personagem → lado da tela
+  const naDireitaDaTela = vista==='costas' ? mao==='D' : mao==='E';
+  const hx = naDireitaDaTela?172:48, hy=206;
+  let s=`<ellipse cx="110" cy="292" rx="70" ry="8" fill="rgba(0,0,0,.08)"/>`;
+  s+=`<rect x="80" y="192" width="27" height="88" rx="12" fill="#35507a"/><rect x="113" y="192" width="27" height="88" rx="12" fill="#35507a"/>`;
+  s+=`<ellipse cx="92" cy="284" rx="18" ry="9" fill="#222"/><ellipse cx="128" cy="284" rx="18" ry="9" fill="#222"/>`;
+  s+=`<path d="M82 128 L50 202" stroke="${camisa}" stroke-width="22" stroke-linecap="round"/><path d="M138 128 L170 202" stroke="${camisa}" stroke-width="22" stroke-linecap="round"/>`;
+  s+=`<circle cx="48" cy="208" r="13" fill="${pele}"/><circle cx="172" cy="208" r="13" fill="${pele}"/>`;
+  s+=`<rect x="72" y="108" width="76" height="100" rx="26" fill="${camisa}"/>`;
+  if(vista==='costas') s+=`<rect x="84" y="122" width="52" height="60" rx="14" fill="${escurecer(camisa,.25)}"/><rect x="92" y="130" width="36" height="14" rx="7" fill="${escurecer(camisa,.4)}"/>`;
+  s+=`<rect x="100" y="94" width="20" height="20" rx="6" fill="${pele}"/>`;
+  s+=`<circle cx="72" cy="66" r="9" fill="${pele}"/><circle cx="148" cy="66" r="9" fill="${pele}"/>`;
+  if(vista==='costas'){
+    s+=`<circle cx="110" cy="62" r="40" fill="${cabelo}"/><path d="M80 80 Q110 106 140 80" stroke="${escurecer(cabelo,.3)}" stroke-width="4" fill="none" opacity=".5"/>`;
+  }else{
+    s+=`<circle cx="110" cy="64" r="38" fill="${pele}"/>`;
+    s+=`<path d="M72 60 Q74 20 110 22 Q148 22 148 60 Q132 40 110 42 Q88 40 72 60Z" fill="${cabelo}"/>`;
+    s+=`<circle cx="96" cy="66" r="5" fill="#2b2b2b"/><circle cx="124" cy="66" r="5" fill="#2b2b2b"/>`;
+    s+=`<circle cx="88" cy="80" r="6" fill="#ff8fa3" opacity=".5"/><circle cx="132" cy="80" r="6" fill="#ff8fa3" opacity=".5"/>`;
+    s+=`<path d="M98 84 Q110 94 122 84" stroke="#7a3b2e" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+  }
+  s+=`<text x="${hx}" y="${hy-12}" font-size="52" text-anchor="middle">${item}</text>`;
+  return `<svg viewBox="0 0 220 300" role="img">${s}</svg>`;
+}
+function ajusteCor(hex,f){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;
+  const m=c=>Math.max(0,Math.min(255,Math.round(f>0?c+(255-c)*f:c*(1+f))));return '#'+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,'0')).join('');}
+const clarear=(h,f)=>ajusteCor(h,f), escurecer=(h,f)=>ajusteCor(h,-f);
+
+/* ---------- Rodadas ---------- */
+function novaRodada(){
+  const tipo = fase.id==='mistura' ? AK.sortear(['maos1','maos2','lugar','costas','frente']) : fase.id;
+  const lado = Math.random()<.5?'E':'D';
+  const pele=AK.sortear(PELES);
+  let html='', pergunta='', fala='', dica='';
+  if(tipo==='maos1'||tipo==='maos2'){
+    const vista = tipo==='maos1'?'dorso':AK.sortear(['dorso','palma']);
+    html=`<span class="selo">${AK.t(vista==='dorso'?T.dorso:T.palma)}</span>`+imgMao(lado,vista);
+    pergunta=fala=AK.t(T.pMao); dica=AK.t(T.dMao);
+  }else if(tipo==='lugar'){
+    const [a,b]=AK.embaralhar(OBJ).slice(0,2);
+    html=`<div class="cena">${lado==='E'?`<span>${a.e}</span><span>${b.e}</span>`:`<span>${b.e}</span><span>${a.e}</span>`}</div>`;
+    const nome=a[AK.lang][0], de=b[AK.lang][1];
+    pergunta=AK.t(T.pLugar).replace('{A}',`${a.e} ${AK.lang==='en'?nome:cap(nome)}`).replace('{B}',AK.lang==='en'?`${b.e} ${de}`:`${de} ${b.e}`);
+    fala=AK.t(T.pLugar).replace('{A}',AK.lang==='en'?nome:cap(nome)).replace('{B}',de);
+    dica=AK.t(T.dLugar);
+  }else{
+    const vista=tipo; const it=AK.sortear(ITENS);
+    html=`<span class="selo">${AK.t(vista==='costas'?T.costas:T.frente)}</span>`+imgCrianca(vista,lado,it.e);
+    pergunta=AK.t(T.pSegura).replace('{I}',`${it[AK.lang]} ${it.e}`); fala=AK.t(T.pSegura).replace('{I}',it[AK.lang]);
+    dica=AK.t(vista==='costas'?T.dCostas:T.dFrente);
+  }
+  atual={lado,dica};
+  $('pergunta').textContent=pergunta;
+  $('palco').innerHTML=html;
+  $('feedback').textContent=''; $('feedback').className='feedback';
+  $('respostas').classList.remove('trava');
+  $('respostas').querySelectorAll('.ak-btn').forEach(b=>b.classList.remove('mostra','ak-certo','ak-errado'));
+  $('barra').style.width=(rodada/RODADAS*100)+'%';
+  AK.falar(fala);
+}
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+function responder(lado,botao){
+  if(!atual) return;
+  $('respostas').classList.add('trava');
+  const ok=lado===atual.lado;
+  if(ok){
+    acertos++; AK.som('ok'); AK.vibrar(20); botao.classList.add('ak-certo');
+    const frases=AK.t(T.certo); $('feedback').textContent=AK.sortear(frases); $('feedback').className='feedback ok';
+    rodada++; setTimeout(proxima,800);
+  }else{
+    erros++; AK.som('erro'); AK.vibrar([40,40,40]); botao.classList.add('ak-errado');
+    const certo=$('respostas').querySelector(`[data-lado="${atual.lado}"]`); certo.classList.add('mostra');
+    $('feedback').textContent=AK.t(T.errado).replace('{L}',AK.t(atual.lado==='E'?T.esqMin:T.dirMin)); $('feedback').className='feedback err';
+    mostrarDica(); rodada++; setTimeout(proxima,2300);
+  }
+  atual=null;
+}
+function mostrarDica(){
+  if(!atual && !$('palco').lastDica) return;
+  const txt=(atual&&atual.dica)||$('palco').lastDica;
+  $('palco').lastDica=txt;
+  let d=$('palco').querySelector('.ak-dica'); if(!d){d=document.createElement('div');d.className='ak-dica';$('palco').appendChild(d);}
+  d.textContent=txt; AK.falar(txt);
+}
+function proxima(){ if(rodada>=RODADAS) terminar(); else novaRodada(); }
+
+function iniciar(i){
+  fase=FASES[i]; rodada=0; acertos=0; erros=0;
+  $('nomeFase').textContent=AK.t(fase.nome);
+  AK.tela('jogo'); novaRodada();
+}
+function terminar(){
+  $('barra').style.width='100%';
+  const est = erros<=1?3:erros<=3?2:1;
+  if(est>(prog[fase.id]||0)){prog[fase.id]=est;salvo.gravar(prog);}
+  const idx=FASES.indexOf(fase);
+  const botoes=[];
+  if(idx<FASES.length-1) botoes.push({rotulo:AK.t(T.proxima),acao:()=>iniciar(idx+1)});
+  botoes.push({rotulo:AK.t(T.denovo),classe:'sec',acao:()=>iniciar(idx)});
+  botoes.push({rotulo:AK.t(T.menu),classe:'sec',acao:voltarInicio});
+  AK.resultado({titulo:AK.t(T.fim),estrelas:est,texto:AK.t(T.fimTxt).replace('{A}',acertos).replace('{N}',RODADAS),botoes});
+}
+function voltarInicio(){ desenharFases(); AK.tela('inicio'); }
+
+$('respostas').querySelectorAll('.ak-btn').forEach(b=>b.onclick=()=>responder(b.dataset.lado,b));
+$('btSair').onclick=voltarInicio;
+$('btDica').onclick=()=>{ if(atual) mostrarDica(); };
+AK.voltarInterno=()=>{ if(AK.telaAtual==='jogo'){voltarInicio();return true;} return false; };
+desenharFases(); AK.telaAtual='inicio';
+})();
+</script>
+</body>
+</html>

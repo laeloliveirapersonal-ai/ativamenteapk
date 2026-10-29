@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Labirinto</title>
+<script src="ajustes.js"></script>
+<link rel="stylesheet" href="ativamente-kit.css">
+<style>
+:root{--bg:#f1fbf4;--bg2:#e6f3ff;--pri:#2fb37a;--pri-esc:#1d8a5b;--sec:#ff9f43;--ink:#21413a;--muted:#5f7f76}
+#jogo{height:100%;padding-bottom:12px}
+.palco{flex:1;position:relative;background:#fffdf7;border-radius:28px;box-shadow:var(--sombra);overflow:hidden;min-height:300px}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.aviso{min-height:40px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:1.1rem;margin:10px 0 0;color:var(--pri-esc)}
+.aviso.err{color:var(--err)}
+.fases{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:12px}
+.fase{position:relative;border:0;border-radius:22px;background:var(--card);box-shadow:var(--sombra);padding:12px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;font:inherit;color:var(--ink);cursor:pointer}
+.fase:active{transform:scale(.96)}
+.fase .emo{font-size:1.9rem;line-height:1.1}
+.fase b{font-size:1.15rem;font-weight:900}
+.fase .ak-estrela{font-size:.95rem}
+.surpresa{margin-top:16px}
+#tamanhos button{min-width:0;padding:0 6px}
+</style>
+</head>
+<body>
+
+<section class="tela on" id="inicio">
+  <div class="ak-capa">
+    <img class="ak-arte ak-arte-img" src="capa-labirinto.webp" alt="">
+    <h1 data-t="titulo">Labirinto</h1>
+    <p data-t="sub">Arraste o bichinho pelos corredores até a comida</p>
+  </div>
+  <div class="ak-rotulo" data-t="tamanho">Tamanho do labirinto</div>
+  <div class="ak-seg" id="tamanhos">
+    <button data-n="0" data-t="t0">Pequeno</button><button data-n="1" data-t="t1">Médio</button><button data-n="2" data-t="t2">Grande</button><button data-n="3" data-t="t3">Gigante</button>
+  </div>
+  <div class="ak-rotulo" data-t="fasesR">Fases</div>
+  <div class="fases" id="fases"></div>
+  <button class="ak-btn laranja surpresa" id="btSurpresa" data-t="surpresa">🎲 Labirinto surpresa</button>
+</section>
+
+<section class="tela" id="jogo">
+  <div class="ak-topo">
+    <button class="ak-icone" id="btSair" aria-label="Menu">🏠</button>
+    <h2 id="nome"></h2>
+    <button class="ak-icone" id="btDica" aria-label="Dica">💡</button>
+    <button class="ak-icone" id="btReinicia" aria-label="Recomeçar">↺</button>
+  </div>
+  <div class="palco" id="palco"><canvas id="tela"></canvas></div>
+  <div class="aviso" id="aviso"></div>
+</section>
+
+<script src="ativamente-kit.js"></script>
+<script>
+(function(){
+const T={
+  titulo:{pt:'Labirinto',en:'Maze',es:'Laberinto'},
+  sub:{pt:'Arraste o bichinho pelos corredores até a comida',en:'Drag the little animal through the paths to its food',es:'Arrastra al animalito por los pasillos hasta su comida'},
+  tamanho:{pt:'Tamanho do labirinto',en:'Maze size',es:'Tamaño del laberinto'},
+  t0:{pt:'Pequeno',en:'Small',es:'Pequeño'}, t1:{pt:'Médio',en:'Medium',es:'Mediano'},
+  t2:{pt:'Grande',en:'Large',es:'Grande'}, t3:{pt:'Gigante',en:'Giant',es:'Gigante'},
+  fasesR:{pt:'Fases',en:'Levels',es:'Niveles'},
+  surpresa:{pt:'🎲 Labirinto surpresa',en:'🎲 Surprise maze',es:'🎲 Laberinto sorpresa'},
+  fase:{pt:'Fase {N}',en:'Level {N}',es:'Nivel {N}'},
+  surpresaNome:{pt:'Surpresa',en:'Surprise',es:'Sorpresa'},
+  comece:{pt:'Arraste o bichinho até a comida',en:'Drag the little animal to its food',es:'Arrastra al animalito hasta su comida'},
+  parede:{pt:'Ops! Tem uma parede aí. Procure outro caminho',en:'Oops! There is a wall. Find another way',es:'¡Ups! Hay una pared. Busca otro camino'},
+  toque:{pt:'Coloque o dedo em cima do bichinho',en:'Put your finger on the little animal',es:'Pon el dedo sobre el animalito'},
+  dica:{pt:'Siga as bolinhas amarelas 💡',en:'Follow the yellow dots 💡',es:'Sigue los puntos amarillos 💡'},
+  fim:{pt:'Você chegou!',en:'You made it!',es:'¡Llegaste!'},
+  perfeito:{pt:'Perfeito! Você achou o caminho sozinho!',en:'Perfect! You found the way by yourself!',es:'¡Perfecto! ¡Encontraste el camino solito!'},
+  fimTxt:{pt:'Batidas na parede: {B} · Dicas: {D}',en:'Wall bumps: {B} · Hints: {D}',es:'Choques con la pared: {B} · Pistas: {D}'},
+  proximo:{pt:'Próxima fase ➡',en:'Next level ➡',es:'Siguiente nivel ➡'},
+  outro:{pt:'Outro labirinto ➡',en:'Another maze ➡',es:'Otro laberinto ➡'},
+  denovo:{pt:'Fazer de novo',en:'Play again',es:'Jugar de nuevo'},
+  menu:{pt:'Escolher fase',en:'Choose a level',es:'Elegir nivel'}
+};
+const $=id=>document.getElementById(id);
+const TAM=[[4,6],[6,9],[8,13],[10,17]], FASES=12;
+const BICHOS=[['🐞','🌸'],['🐭','🧀'],['🐶','🦴'],['🐝','🌻'],['🐰','🥕'],['🐵','🍌'],['🐱','🐟'],['🐿️','🌰']];
+const N=1,L=2,S=4,O=8, DIR=[[N,0,-1,S],[L,1,0,O],[S,0,1,N],[O,-1,0,L]];
+
+const salvo=AK.salvo('labirinto'); let prog=salvo.ler(); if(prog.tam==null) prog.tam=0; prog.est=prog.est||{};
+AK.traduzir(T); document.title=AK.t(T.titulo);
+
+/* ---------- gerador (sempre o mesmo labirinto para a mesma fase) ---------- */
+function rng(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function gerar(c,r,seed){
+  const rnd=rng(seed), m=new Array(c*r).fill(15), vis=new Array(c*r).fill(false), pilha=[0]; vis[0]=true;
+  while(pilha.length){
+    const at=pilha[pilha.length-1], x=at%c, y=(at/c)|0;
+    const viz=DIR.filter(([,dx,dy])=>{const nx=x+dx,ny=y+dy; return nx>=0&&ny>=0&&nx<c&&ny<r&&!vis[ny*c+nx];});
+    if(!viz.length){ pilha.pop(); continue; }
+    const [b,dx,dy,op]=viz[(rnd()*viz.length)|0], nv=(y+dy)*c+x+dx;
+    m[at]&=~b; m[nv]&=~op; vis[nv]=true; pilha.push(nv);
+  }
+  return m;
+}
+function caminho(de,ate){ // menor caminho (BFS)
+  const ant=new Array(lab.c*lab.r).fill(-1), fila=[de]; ant[de]=de;
+  while(fila.length){ const at=fila.shift(); if(at===ate) break;
+    const x=at%lab.c,y=(at/lab.c)|0;
+    for(const [b,dx,dy] of DIR){ if(lab.m[at]&b) continue; const nv=(y+dy)*lab.c+x+dx; if(ant[nv]<0){ant[nv]=at;fila.push(nv);} } }
+  const p=[]; for(let v=ate;v!==de;v=ant[v]) p.push(v); p.push(de); return p.reverse();
+}
+
+/* ---------- tela inicial ---------- */
+function desenharInicio(){
+  $('tamanhos').querySelectorAll('button').forEach(b=>{ b.classList.toggle('on',+b.dataset.n===prog.tam);
+    b.onclick=()=>{ prog.tam=+b.dataset.n; salvo.gravar(prog); desenharInicio(); AK.som('clique'); }; });
+  let h=''; for(let i=0;i<FASES;i++){ const id=prog.tam+'-'+i;
+    h+=`<button class="fase" data-i="${i}"><span class="emo">${BICHOS[i%BICHOS.length][0]}</span><b>${i+1}</b><span>${AK.estrelasHTML(prog.est[id]||0)}</span></button>`; }
+  $('fases').innerHTML=h;
+  $('fases').querySelectorAll('.fase').forEach(b=>b.onclick=()=>iniciar(prog.tam,+b.dataset.i));
+}
+$('btSurpresa').onclick=()=>iniciar(prog.tam,-1);
+
+/* ---------- jogo ---------- */
+const cv=$('tela'), g=cv.getContext('2d');
+let lab=null, seedAt=0, faseAt=0, tamAt=0, pos=0, rastro=[], batidas=0, dicas=0, dicaAte=0, concluido=false, arrastando=false, ultBatida=0;
+let geo={}, anim={x:0,y:0};
+
+function iniciar(t,i,s){
+  tamAt=t; faseAt=i; let [c,r]=TAM[t];
+  AK.tela('jogo'); const bx=$('palco').getBoundingClientRect(); if(bx.width>bx.height*1.1) [c,r]=[r,c]; // tablet deitado: labirinto deitado
+  const seed=s!=null?s:i<0?(Date.now()&0xffffff):(t+1)*7919+i*104729; seedAt=seed;
+  lab={c,r,m:gerar(c,r,seed),bicho:BICHOS[(i<0?seed%7+1:i)%BICHOS.length]};
+  pos=0; rastro=[0]; batidas=0; dicas=0; dicaAte=0; concluido=false; arrastando=false;
+  $('nome').textContent=i<0?AK.t(T.surpresaNome):AK.t(T.fase).replace('{N}',i+1);
+  requestAnimationFrame(()=>{ preparar(); const p=centro(0); anim={x:p[0],y:p[1]}; aviso(T.comece); AK.falar(AK.t(T.comece)); loop(); });
+}
+function preparar(){
+  const box=$('palco').getBoundingClientRect(), dpr=Math.min(window.devicePixelRatio||1,2);
+  cv.width=box.width*dpr; cv.height=box.height*dpr; g.setTransform(dpr,0,0,dpr,0,0);
+  const pad=14, cel=Math.min((box.width-2*pad)/lab.c,(box.height-2*pad)/lab.r);
+  geo={W:box.width,H:box.height,cel,ox:(box.width-cel*lab.c)/2,oy:(box.height-cel*lab.r)/2};
+}
+function centro(v){ return [geo.ox+((v%lab.c)+.5)*geo.cel, geo.oy+(((v/lab.c)|0)+.5)*geo.cel]; }
+
+function desenhar(){
+  const {W,H,cel,ox,oy}=geo, c=lab.c, r=lab.r;
+  g.clearRect(0,0,W,H);
+  // chão
+  g.fillStyle='#eef9f1'; g.beginPath(); g.roundRect(ox-4,oy-4,c*cel+8,r*cel+8,14); g.fill();
+  // dica
+  if(performance.now()<dicaAte){ g.fillStyle='#ffd23f';
+    caminho(pos,c*r-1).slice(1,-1).forEach(v=>{ const [x,y]=centro(v); g.beginPath(); g.arc(x,y,Math.max(3,cel*.13),0,7); g.fill(); }); }
+  // rastro
+  if(rastro.length>1){ g.lineCap='round'; g.lineJoin='round'; g.lineWidth=cel*.32; g.strokeStyle='rgba(47,179,122,.35)';
+    g.beginPath(); rastro.forEach((v,k)=>{ const [x,y]=centro(v); k?g.lineTo(x,y):g.moveTo(x,y); }); g.lineTo(anim.x,anim.y); g.stroke(); }
+  // paredes
+  g.strokeStyle='#5b4a8a'; g.lineWidth=Math.max(3,cel*.12); g.lineCap='round'; g.beginPath();
+  for(let v=0;v<c*r;v++){ const x=ox+(v%c)*cel, y=oy+((v/c)|0)*cel, w=lab.m[v];
+    if(w&N){g.moveTo(x,y);g.lineTo(x+cel,y);} if(w&O){g.moveTo(x,y);g.lineTo(x,y+cel);}
+    if((v%c)===c-1&&(w&L)){g.moveTo(x+cel,y);g.lineTo(x+cel,y+cel);}
+    if(((v/c)|0)===r-1&&(w&S)){g.moveTo(x,y+cel);g.lineTo(x+cel,y+cel);} }
+  g.stroke();
+  // comida e bichinho
+  g.textAlign='center'; g.textBaseline='middle';
+  const [gx,gy]=centro(c*r-1), pulso=1+.08*Math.sin(performance.now()/250);
+  g.font=`${cel*.66*pulso}px sans-serif`; g.fillText(lab.bicho[1],gx,gy+cel*.03);
+  g.font=`${cel*.72}px sans-serif`; g.fillText(lab.bicho[0],anim.x,anim.y+cel*.03);
+}
+function loop(){
+  if(AK.telaAtual!=='jogo'||concluido) return;
+  const [tx,ty]=centro(pos); anim.x+=(tx-anim.x)*.35; anim.y+=(ty-anim.y)*.35;
+  desenhar(); requestAnimationFrame(loop);
+}
+
+/* move o bichinho na direção do dedo, uma casa por vez, sem atravessar paredes */
+function andar(px,py){
+  { const [cx,cy]=centro(pos); if(Math.hypot(px-cx,py-cy)>geo.cel*1.5){ aviso(T.toque,true); return; } } // o dedo precisa estar perto do bichinho
+  for(let passos=0;passos<lab.c+lab.r;passos++){
+    const [cx,cy]=centro(pos), dx=(px-cx)/geo.cel, dy=(py-cy)/geo.cel;
+    const ops=[]; if(Math.abs(dx)>.55) ops.push([Math.abs(dx),dx>0?1:3]); if(Math.abs(dy)>.55) ops.push([Math.abs(dy),dy>0?2:0]);
+    if(!ops.length) return; ops.sort((a,b)=>b[0]-a[0]);
+    let andou=false;
+    for(const [,d] of ops){ const [b,mx,my]=DIR[d]; if(lab.m[pos]&b) continue;
+      const nv=pos+my*lab.c+mx;
+      if(rastro.length>1&&rastro[rastro.length-2]===nv) rastro.pop(); else rastro.push(nv);
+      pos=nv; andou=true; break; }
+    if(!andou){ const agora=performance.now();
+      if(ops[0][0]>.9&&agora-ultBatida>600){ ultBatida=agora; batidas++; AK.vibrar(30); AK.som('erro'); aviso(T.parede,true); }
+      return; }
+    if(pos===lab.c*lab.r-1){ terminar(); return; }
+  }
+}
+function ponto(e){ const b=cv.getBoundingClientRect(); return [e.clientX-b.left,e.clientY-b.top]; }
+cv.addEventListener('pointerdown',e=>{ if(concluido) return; arrastando=true; cv.setPointerCapture(e.pointerId);
+  const [x,y]=ponto(e), [cx,cy]=centro(pos);
+  if(Math.hypot(x-cx,y-cy)<geo.cel*.6) aviso(T.comece); else andar(x,y); });
+cv.addEventListener('pointermove',e=>{ if(!arrastando||concluido) return; const [x,y]=ponto(e); andar(x,y); });
+['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,()=>arrastando=false));
+window.addEventListener('keydown',e=>{ if(AK.telaAtual!=='jogo'||concluido) return;
+  const d={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3}[e.key]; if(d==null) return; e.preventDefault();
+  const [cx,cy]=centro(pos), [,mx,my]=DIR[d]; andar(cx+mx*geo.cel,cy+my*geo.cel); });
+
+function aviso(txt,err){ $('aviso').textContent=AK.t(txt); $('aviso').className='aviso'+(err?' err':''); }
+$('btDica').onclick=()=>{ if(concluido) return; dicas++; dicaAte=performance.now()+2500; aviso(T.dica); AK.som('clique'); };
+
+function terminar(){
+  concluido=true; arrastando=false; const [tx,ty]=centro(pos); anim={x:tx,y:ty}; desenhar(); AK.som('ok');
+  const est=Math.max(1,3-(dicas>0?1:0)-(batidas>5?1:0));
+  if(faseAt>=0){ const id=tamAt+'-'+faseAt; if(est>(prog.est[id]||0)){prog.est[id]=est;salvo.gravar(prog);} }
+  const botoes=[];
+  if(faseAt<0) botoes.push({rotulo:AK.t(T.outro),acao:()=>iniciar(tamAt,-1)});
+  else if(faseAt<FASES-1) botoes.push({rotulo:AK.t(T.proximo),acao:()=>iniciar(tamAt,faseAt+1)});
+  else if(tamAt<TAM.length-1) botoes.push({rotulo:AK.t(T.proximo),acao:()=>{prog.tam=tamAt+1;salvo.gravar(prog);iniciar(tamAt+1,0);}});
+  botoes.push({rotulo:AK.t(T.denovo),classe:'sec',acao:()=>iniciar(tamAt,faseAt,seedAt)});
+  botoes.push({rotulo:AK.t(T.menu),classe:'sec',acao:voltarInicio});
+  const txt=(batidas===0&&dicas===0)?AK.t(T.perfeito):AK.t(T.fimTxt).replace('{B}',batidas).replace('{D}',dicas);
+  setTimeout(()=>AK.resultado({titulo:AK.t(T.fim)+' '+lab.bicho[0]+lab.bicho[1],estrelas:est,texto:txt,botoes}),400);
+}
+function voltarInicio(){ concluido=true; desenharInicio(); AK.tela('inicio'); }
+$('btSair').onclick=voltarInicio;
+$('btReinicia').onclick=()=>iniciar(tamAt,faseAt,seedAt);
+window.addEventListener('resize',()=>{ if(AK.telaAtual==='jogo'&&lab){ preparar(); const p=centro(pos); anim={x:p[0],y:p[1]}; desenhar(); } });
+AK.voltarInterno=()=>{ if(AK.telaAtual==='jogo'){voltarInicio();return true;} return false; };
+desenharInicio(); AK.telaAtual='inicio';
+})();
+</script>
+</body>
+</html>

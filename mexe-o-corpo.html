@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mexe o Corpo</title>
+<script src="ajustes.js"></script>
+<link rel="stylesheet" href="ativamente-kit.css">
+<style>
+:root{--bg:#fff6d9;--bg2:#ffe3c7;--pri:#ff7a2f;--pri-esc:#d4561a;--sec:#3ec1d3;--ink:#4a2a12;--muted:#8a6248}
+.palco{position:relative;flex:1;min-height:300px;border-radius:30px;background:linear-gradient(#bfe9ff 0,#e6f7ff 62%,#9be08f 62%,#7fd174 100%);
+  box-shadow:var(--sombra);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pose{height:min(44vh,360px);width:auto;max-width:86%;transform-origin:50% 100%;position:relative;z-index:1;filter:drop-shadow(0 10px 10px rgba(0,0,0,.12))}
+.chao{position:absolute;bottom:9%;left:50%;width:150px;height:16px;margin-left:-75px;border-radius:50%;background:rgba(0,0,0,.14)}
+.anim-pulo{animation:mPulo var(--dur) ease-in-out infinite}
+.anim-trote{animation:mTrote var(--dur) ease-in-out infinite}
+.anim-agacha{animation:mAgacha var(--dur) ease-in-out infinite}
+.anim-treme{animation:mTreme var(--dur) ease-in-out infinite}
+.anim-estica{animation:mEstica var(--dur) ease-in-out infinite}
+.anim-balanca{animation:mBalanca var(--dur) ease-in-out infinite}
+.anim-gira{animation:mGira var(--dur) linear infinite}
+@keyframes mPulo{0%,100%{transform:translateY(0) scaleY(1)}12%{transform:translateY(0) scaleY(.93)}50%{transform:translateY(-16%) scaleY(1.02)}88%{transform:translateY(0) scaleY(.96)}}
+@keyframes mTrote{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-5%) rotate(2deg)}}
+@keyframes mAgacha{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.9) scaleX(1.03)}}
+@keyframes mTreme{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) translateY(-2%)}}
+@keyframes mEstica{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3%) scale(1.04)}}
+@keyframes mBalanca{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+@keyframes mGira{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+.ak-cartao .mini{height:86px;width:auto}
+.nomeMov{text-align:center;font-size:clamp(1.6rem,7vw,2.3rem);font-weight:900;margin:12px 0 2px;line-height:1.1}
+.descMov{text-align:center;color:var(--muted);font-weight:800;font-size:1.05rem;min-height:1.4em}
+.anel{position:absolute;top:12px;right:12px;width:92px;height:92px}
+.anel circle{fill:none;stroke-width:10}
+.anel .fundo{stroke:rgba(255,255,255,.75)}.anel .vai{stroke:var(--pri);stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .25s linear}
+.anel text{font-size:30px;font-weight:900;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.prep{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,246,217,.75);font-size:min(36vw,170px);font-weight:900;color:var(--pri)}
+.prep[hidden]{display:none}
+.prep small{display:block;font-size:1.3rem;color:var(--ink);text-align:center}
+.controles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.passos{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.passos span{width:46px;height:46px;border-radius:14px;background:#fff;box-shadow:var(--sombra);display:grid;place-items:center;font-size:1.5rem;font-weight:900;color:var(--muted)}
+.passos span.on{outline:4px solid var(--pri)}
+.lista{display:grid;gap:10px;margin:8px 0 14px}
+.lista div{display:flex;align-items:center;gap:12px;background:#fff;border-radius:18px;padding:10px 14px;box-shadow:var(--sombra);font-weight:900;font-size:1.15rem}
+.lista i{font-style:normal;font-size:1.8rem;width:40px;text-align:center}
+.lista em{font-style:normal;margin-left:auto;color:var(--muted);font-size:1rem}
+.grandeVez{text-align:center;font-size:clamp(1.9rem,8vw,2.6rem);font-weight:900;margin:14px 0 6px}
+</style>
+</head>
+<body>
+
+<section class="tela on" id="inicio">
+  <div class="ak-capa">
+    <img class="ak-arte ak-arte-img" src="capa-mexe-o-corpo.webp" alt="">
+    <h1 data-t="titulo">Mexe o Corpo</h1>
+    <p data-t="sub">Veja o movimento e faça junto!</p>
+  </div>
+  <div class="ak-pilha">
+    <button class="ak-btn" id="btMestre">🧑‍🏫 <span data-t="mestre">Siga o Mestre</span></button>
+    <button class="ak-btn laranja" id="btMemoria" style="--sec:#3ec1d3">🧠 <span data-t="memoria">Memória do Corpo</span></button>
+    <button class="ak-btn sec" id="btCatalogo">📚 <span data-t="catalogo">Ver os movimentos</span></button>
+  </div>
+  <div class="ak-rotulo" data-t="tempo">Tempo de cada movimento</div>
+  <div class="ak-seg" id="optTempo"><button data-v="10">10 s</button><button data-v="20">20 s</button><button data-v="30">30 s</button></div>
+  <div class="ak-rotulo" data-t="qtd">Quantos movimentos</div>
+  <div class="ak-seg" id="optQtd"><button data-v="5">5</button><button data-v="8">8</button><button data-v="12">12</button></div>
+  <div class="ak-rotulo" data-t="voz">Voz</div>
+  <div class="ak-seg" id="optVoz"><button data-v="1" data-t="ligada">Ligada</button><button data-v="0" data-t="desligada">Desligada</button></div>
+</section>
+
+<section class="tela" id="catalogo">
+  <div class="ak-topo"><button class="ak-icone" data-volta aria-label="Voltar">←</button><h2 data-t="catalogo">Ver os movimentos</h2></div>
+  <div class="ak-grade" id="gradeMov"></div>
+</section>
+
+<section class="tela" id="exercicio">
+  <div class="ak-topo"><button class="ak-icone" data-volta aria-label="Menu">🏠</button><h2 id="tituloEx"></h2><div class="ak-placar" id="contaEx"></div></div>
+  <div class="palco" id="palco">
+    <div class="chao"></div><img class="pose" id="pose" alt="" draggable="false">
+    <svg class="anel" id="anel" viewBox="0 0 100 100"><circle class="fundo" cx="50" cy="50" r="42"/><circle class="vai" id="anelVai" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="0"/><text x="50" y="52" id="anelTxt"></text></svg>
+    <div class="prep" id="prep" hidden></div>
+  </div>
+  <div class="nomeMov" id="nomeMov"></div>
+  <div class="descMov" id="descMov"></div>
+  <div class="controles" id="controles">
+    <button class="ak-btn sec" id="btPausa">⏸ <span data-t="pausar">Pausar</span></button>
+    <button class="ak-btn sec" id="btPular">⏭ <span data-t="pular">Pular</span></button>
+  </div>
+</section>
+
+<section class="tela" id="vez">
+  <div class="ak-topo"><button class="ak-icone" data-volta aria-label="Menu">🏠</button><h2 data-t="memoria">Memória do Corpo</h2></div>
+  <div class="grandeVez" data-t="suaVez">Sua vez!</div>
+  <p class="descMov" data-t="facaOrdem">Faça os movimentos na mesma ordem</p>
+  <div class="passos" id="passosVez"></div>
+  <div class="palco" style="min-height:220px"><svg class="anel" viewBox="0 0 100 100" style="position:static;width:160px;height:160px"><circle class="fundo" cx="50" cy="50" r="42"/><circle class="vai" id="anelVez" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="0"/><text x="50" y="52" id="txtVez"></text></svg></div>
+  <div style="margin-top:14px"><button class="ak-btn" id="btConferir">👀 <span data-t="conferir">Conferir</span></button></div>
+</section>
+
+<section class="tela" id="conferir">
+  <div class="ak-topo"><button class="ak-icone" data-volta aria-label="Menu">🏠</button><h2 data-t="eraAssim">Era assim:</h2></div>
+  <div class="lista" id="listaConf"></div>
+  <div class="ak-pilha">
+    <button class="ak-btn" id="btAcertou">✅ <span data-t="conseguiu">Conseguiu!</span></button>
+    <button class="ak-btn sec" id="btErrou">🔁 <span data-t="ainda">Ainda não</span></button>
+  </div>
+</section>
+
+<script src="ativamente-kit.js"></script>
+<script>
+(function(){
+const T={
+  titulo:{pt:'Mexe o Corpo',en:'Move Your Body',es:'Mueve el Cuerpo'},
+  sub:{pt:'Veja o movimento e faça junto!',en:'Watch the move and do it too!',es:'¡Mira el movimiento y hazlo también!'},
+  mestre:{pt:'Siga o Mestre',en:'Follow the Leader',es:'Sigue al Líder'},
+  memoria:{pt:'Memória do Corpo',en:'Body Memory',es:'Memoria del Cuerpo'},
+  catalogo:{pt:'Ver os movimentos',en:'See all moves',es:'Ver los movimientos'},
+  tempo:{pt:'Tempo de cada movimento',en:'Time for each move',es:'Tiempo de cada movimiento'},
+  qtd:{pt:'Quantos movimentos',en:'How many moves',es:'Cuántos movimientos'},
+  voz:{pt:'Voz',en:'Voice',es:'Voz'},ligada:{pt:'Ligada',en:'On',es:'Activada'},desligada:{pt:'Desligada',en:'Off',es:'Desactivada'},
+  pausar:{pt:'Pausar',en:'Pause',es:'Pausa'},continuar:{pt:'Continuar',en:'Resume',es:'Seguir'},pular:{pt:'Pular',en:'Skip',es:'Saltar'},
+  prepare:{pt:'Prepare-se!',en:'Get ready!',es:'¡Prepárate!'},
+  memorize:{pt:'Memorize!',en:'Remember it!',es:'¡Memoriza!'},
+  suaVez:{pt:'Sua vez!',en:'Your turn!',es:'¡Tu turno!'},
+  facaOrdem:{pt:'Faça os movimentos na mesma ordem',en:'Do the moves in the same order',es:'Haz los movimientos en el mismo orden'},
+  conferir:{pt:'Conferir',en:'Check',es:'Comprobar'},eraAssim:{pt:'Era assim:',en:'It was like this:',es:'Era así:'},
+  conseguiu:{pt:'Conseguiu!',en:'Got it!',es:'¡Lo logró!'},ainda:{pt:'Ainda não',en:'Not yet',es:'Todavía no'},
+  fimMestre:{pt:'Treino completo!',en:'Workout complete!',es:'¡Entrenamiento completo!'},
+  fimMestreTxt:{pt:'Você fez {N} movimentos! 💪',en:'You did {N} moves! 💪',es:'¡Hiciste {N} movimientos! 💪'},
+  fimMem:{pt:'Ótima memória!',en:'Great memory!',es:'¡Gran memoria!'},
+  fimMemTxt:{pt:'Você lembrou de uma sequência de {N} movimentos.',en:'You remembered a sequence of {N} moves.',es:'Recordaste una secuencia de {N} movimientos.'},
+  denovo:{pt:'De novo',en:'Again',es:'Otra vez'},menu:{pt:'Menu do jogo',en:'Game menu',es:'Menú del juego'}
+};
+// Pose: y (pulo), hy (quadril desce), tl (tronco), lean (inclina), aE/aD [ombro, cotovelo], pE/pD [quadril, joelho]
+const S={y:0,hy:0,tl:1,lean:0,aE:[12,6],aD:[12,6],pE:[4,0],pD:[4,0]};
+const P=(o)=>Object.assign({},S,o);
+const MOV=[
+ {id:'pular',e:'🦘',f:1.1,A:P({hy:14,pE:[12,-24],pD:[12,-24],aE:[30,10],aD:[30,10]}),B:P({y:-62,aE:[150,0],aD:[150,0]}),
+  n:{pt:'Pular',en:'Jump',es:'Saltar'},d:{pt:'Pule com os dois pés juntos!',en:'Jump with both feet together!',es:'¡Salta con los dos pies juntos!'}},
+ {id:'agachar',e:'🏋️',f:.45,A:S,B:P({hy:55,pE:[55,-105],pD:[55,-105],aE:[85,0],aD:[85,0]}),
+  n:{pt:'Agachar',en:'Squat',es:'Agacharse'},d:{pt:'Desça e suba devagar',en:'Go down and up slowly',es:'Baja y sube despacio'}},
+ {id:'palmas',e:'👏',f:1.3,A:P({aE:[75,0],aD:[75,0]}),B:P({aE:[30,-115],aD:[30,-115]}),
+  n:{pt:'Bater palmas',en:'Clap your hands',es:'Aplaudir'},d:{pt:'Abra os braços e bata palmas',en:'Open your arms and clap',es:'Abre los brazos y aplaude'}},
+ {id:'bracos',e:'🙌',f:.6,A:S,B:P({aE:[172,0],aD:[172,0]}),
+  n:{pt:'Braços para cima',en:'Arms up',es:'Brazos arriba'},d:{pt:'Suba e desça os braços esticados',en:'Raise and lower your straight arms',es:'Sube y baja los brazos estirados'}},
+ {id:'polichinelo',e:'⭐',f:1,A:S,B:P({y:-10,aE:[165,0],aD:[165,0],pE:[24,0],pD:[24,0]}),
+  n:{pt:'Polichinelo',en:'Jumping jacks',es:'Saltos de tijera'},d:{pt:'Abra braços e pernas ao mesmo tempo',en:'Open arms and legs at the same time',es:'Abre brazos y piernas a la vez'}},
+ {id:'equilibrio',e:'🦩',f:.35,A:P({lean:-4,aE:[85,0],aD:[85,0],pD:[25,-95]}),B:P({lean:4,aE:[88,0],aD:[82,0],pD:[25,-95]}),
+  n:{pt:'Equilíbrio num pé',en:'Stand on one foot',es:'Equilibrio en un pie'},d:{pt:'Fique num pé só, como o flamingo',en:'Stand on one foot like a flamingo',es:'Quédate en un pie, como el flamenco'}},
+ {id:'marchar',e:'🥁',f:1,A:P({pE:[25,-95],aE:[40,40],aD:[20,0]}),B:P({pD:[25,-95],aD:[40,40],aE:[20,0]}),
+  n:{pt:'Marchar',en:'March',es:'Marchar'},d:{pt:'Levante bem os joelhos',en:'Lift your knees high',es:'Levanta bien las rodillas'}},
+ {id:'girar',e:'🌀',f:.5,spin:true,A:P({aE:[82,0],aD:[82,0]}),B:P({aE:[82,0],aD:[82,0]}),
+  n:{pt:'Girar',en:'Spin around',es:'Girar'},d:{pt:'Dê uma volta devagar',en:'Turn around slowly',es:'Da una vuelta despacio'}},
+ {id:'tocar',e:'🦶',f:.45,A:P({aE:[170,0],aD:[170,0]}),B:P({tl:.55,hy:8,aE:[6,0],aD:[6,0]}),
+  n:{pt:'Tocar os pés',en:'Touch your toes',es:'Tocar los pies'},d:{pt:'Estique e tente tocar os pés',en:'Stretch and try to touch your toes',es:'Estírate e intenta tocar los pies'}},
+ {id:'aviao',e:'✈️',f:.4,A:P({lean:-16,aE:[92,0],aD:[92,0]}),B:P({lean:16,aE:[92,0],aD:[92,0]}),
+  n:{pt:'Aviãozinho',en:'Airplane',es:'Avioncito'},d:{pt:'Abra as asas e incline para os lados',en:'Open your wings and tilt side to side',es:'Abre las alas e inclínate a los lados'}},
+ {id:'socos',e:'🥊',f:1.2,A:P({aE:[130,-30],aD:[30,70]}),B:P({aD:[130,-30],aE:[30,70]}),
+  n:{pt:'Socos no ar',en:'Air punches',es:'Golpes al aire'},d:{pt:'Soque para cima, um braço de cada vez',en:'Punch up, one arm at a time',es:'Golpea hacia arriba, un brazo cada vez'}},
+ {id:'inclinar',e:'🌴',f:.4,A:P({lean:-18,aE:[170,0],aD:[170,0]}),B:P({lean:18,aE:[170,0],aD:[170,0]}),
+  n:{pt:'Inclinar para os lados',en:'Side bends',es:'Inclinarse a los lados'},d:{pt:'Braços para cima, balance como coqueiro',en:'Arms up, sway like a palm tree',es:'Brazos arriba, muévete como palmera'}},
+ {id:'correr',e:'🏃',f:1.8,A:P({y:-6,pE:[25,-95],aE:[40,70],aD:[25,0]}),B:P({y:-6,pD:[25,-95],aD:[40,70],aE:[25,0]}),
+  n:{pt:'Correr parado',en:'Run in place',es:'Correr en el sitio'},d:{pt:'Corra sem sair do lugar',en:'Run without moving from your spot',es:'Corre sin moverte del sitio'}}
+];
+const salvo=AK.salvo('mexe-o-corpo'); let cfg=Object.assign({tempo:20,qtd:8,voz:1},salvo.ler());
+AK.traduzir(T); document.title=AK.t(T.titulo);
+const $=id=>document.getElementById(id);
+
+/* ---------- Boneco ---------- */
+const rad=d=>d*Math.PI/180;
+function rot(v,deg){const a=rad(deg),c=Math.cos(a),s=Math.sin(a);return [v[0]*c-v[1]*s,v[0]*s+v[1]*c];}
+function soma(a,b){return [a[0]+b[0],a[1]+b[1]];}
+function mistura(A,B,t){const o={};for(const k in A){o[k]=Array.isArray(A[k])?A[k].map((v,i)=>v+(B[k][i]-v)*t):A[k]+(B[k]-A[k])*t;}return o;}
+const CORES={pele:'#f1c19a',cabelo:'#5a3a22',camisa:'#3ec1d3',calca:'#35507a',tenis:'#ff5d8f'};
+function desenharBoneco(p,giro){
+  const pel=[150,206+p.hy+p.y], esc=giro==null?1:giro;
+  const pesc=soma(pel,rot([0,-82*p.tl],p.lean)), cab=soma(pesc,rot([0,-34],p.lean));
+  const linha=(a,b,cor,w)=>`<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)} L${b[0].toFixed(1)} ${b[1].toFixed(1)}" stroke="${cor}" stroke-width="${w}" stroke-linecap="round"/>`;
+  let s='';
+  const sombraW=70-Math.min(40,-p.y*.5);
+  s+=`<ellipse cx="150" cy="330" rx="${sombraW}" ry="9" fill="rgba(0,0,0,.15)"/>`;
+  let corpo='';
+  // pernas
+  [['E',-1],['D',1]].forEach(([l,sx])=>{const [h,k]=p['p'+l]; const q=soma(pel,[sx*15,0]);
+    const jo=soma(q,[sx*Math.sin(rad(h))*56,Math.cos(rad(h))*56]); const pe=soma(jo,[sx*Math.sin(rad(h+k))*56,Math.cos(rad(h+k))*56]);
+    corpo+=linha(q,jo,CORES.calca,24)+linha(jo,pe,CORES.calca,21)+`<ellipse cx="${(pe[0]+sx*6).toFixed(1)}" cy="${(pe[1]+4).toFixed(1)}" rx="17" ry="9" fill="${CORES.tenis}"/>`;});
+  // tronco
+  corpo+=linha(pel,soma(pesc,rot([0,6],p.lean)),CORES.camisa,56);
+  corpo+=`<rect x="${(pel[0]-30).toFixed(1)}" y="${(pel[1]-6).toFixed(1)}" width="60" height="18" rx="9" fill="${CORES.calca}" transform="rotate(${p.lean} ${pel[0]} ${pel[1]})"/>`;
+  // braços
+  [['E',-1],['D',1]].forEach(([l,sx])=>{const [o,c]=p['a'+l]; const om=soma(pesc,rot([sx*26,12],p.lean));
+    const co=soma(om,rot([sx*Math.sin(rad(o))*46,Math.cos(rad(o))*46],p.lean)); const mao=soma(co,rot([sx*Math.sin(rad(o+c))*42,Math.cos(rad(o+c))*42],p.lean));
+    corpo+=linha(om,co,CORES.camisa,19)+linha(co,mao,CORES.pele,16)+`<circle cx="${mao[0].toFixed(1)}" cy="${mao[1].toFixed(1)}" r="11" fill="${CORES.pele}"/>`;});
+  // cabeça
+  corpo+=linha(pesc,soma(pesc,rot([0,-12],p.lean)),CORES.pele,18);
+  const frente=esc>=0;
+  corpo+=`<g transform="rotate(${p.lean} ${cab[0]} ${cab[1]})"><circle cx="${cab[0]}" cy="${cab[1]}" r="28" fill="${CORES.pele}"/>`;
+  if(frente) corpo+=`<path d="M${cab[0]-28} ${cab[1]-2} Q${cab[0]-26} ${cab[1]-36} ${cab[0]} ${cab[1]-35} Q${cab[0]+28} ${cab[1]-35} ${cab[0]+28} ${cab[1]-2} Q${cab[0]+14} ${cab[1]-20} ${cab[0]} ${cab[1]-19} Q${cab[0]-14} ${cab[1]-20} ${cab[0]-28} ${cab[1]-2}Z" fill="${CORES.cabelo}"/>
+    <circle cx="${cab[0]-10}" cy="${cab[1]+2}" r="3.6" fill="#2b2b2b"/><circle cx="${cab[0]+10}" cy="${cab[1]+2}" r="3.6" fill="#2b2b2b"/>
+    <path d="M${cab[0]-9} ${cab[1]+13} Q${cab[0]} ${cab[1]+21} ${cab[0]+9} ${cab[1]+13}" stroke="#7a3b2e" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    <circle cx="${cab[0]-17}" cy="${cab[1]+11}" r="4.5" fill="#ff8fa3" opacity=".55"/><circle cx="${cab[0]+17}" cy="${cab[1]+11}" r="4.5" fill="#ff8fa3" opacity=".55"/>`;
+  else corpo+=`<circle cx="${cab[0]}" cy="${cab[1]-2}" r="29" fill="${CORES.cabelo}"/>`;
+  corpo+=`</g>`;
+  s+= giro==null?corpo:`<g transform="translate(150 0) scale(${Math.max(.06,Math.abs(esc)).toFixed(3)} 1) translate(-150 0)">${corpo}</g>`;
+  return s;
+}
+let animMov=null, animIni=0, raf=0;
+// Animação por quadros: mov-<id>-1.webp ... mov-<id>-4.webp (se existirem).
+// Sem os quadros, mostra a pose parada mov-<id>.webp (sem balanço artificial).
+// quantos quadros cada movimento tem e quanto tempo cada quadro fica na tela (ms)
+const QUADROS={pular:[20,75],agachar:[20,110],polichinelo:[4,0]}, cacheQuadros={};
+let timerQuadro=0;
+function carregarQuadros(id){
+  if(cacheQuadros[id]) return cacheQuadros[id];
+  const n=(QUADROS[id]||[0])[0]; if(!n) return Promise.resolve(null);
+  cacheQuadros[id]=Promise.all(Array.from({length:n},(_,i)=>new Promise(ok=>{
+    const im=new Image(); im.onload=()=>ok(im.src); im.onerror=()=>ok(null); im.src=`q-${id}-${String(i+1).padStart(2,'0')}.webp`;
+  }))).then(l=>{
+    const ok=l.filter(Boolean);
+    if(ok.length<l.length) console.warn('Mexe o Corpo: quadros que não carregaram em',id,l.map((x,i)=>x?null:i+1).filter(Boolean));
+    if(ok.length<2){ delete cacheQuadros[id]; return null; }   // tenta de novo na próxima vez
+    return ok;                                                   // anima com os quadros que carregaram
+  });
+  return cacheQuadros[id];
+}
+function animar(){
+  clearInterval(timerQuadro);
+  const m=animMov; if(!m) return;
+  const el=$('pose'); el.className='pose'; el.src=`mov-${m.id}.webp`;
+  carregarQuadros(m.id).then(lista=>{
+    if(!lista||animMov!==m) return;
+    let k=0; el.src=lista[0];
+    const periodo=(m.id==='girar'?2:Math.max(.6,1/m.f))*(AK.ajustes.anim==='reduzida'?1.6:1);
+    const fixo=(QUADROS[m.id]||[])[1], lento=AK.ajustes.anim==='reduzida'?1.6:1;
+    timerQuadro=setInterval(()=>{ k=(k+1)%lista.length; el.src=lista[k]; }, fixo?fixo*lento:Math.max(120,periodo*1000/lista.length));
+  });
+}
+function mostrarMov(m){ animMov=m; animar();
+  $('nomeMov').textContent=m.e+' '+AK.t(m.n); $('descMov').textContent=AK.t(m.d); }
+function pararAnim(){ animMov=null; clearInterval(timerQuadro); }
+
+/* ---------- Relógio ---------- */
+let timers=[], pausado=false, restante=0, total=0, aoFim=null, tickId=0;
+function limpar(){ timers.forEach(clearTimeout); timers=[]; clearInterval(tickId); }
+function anel(idCirc,idTxt,r,tot){ $(idCirc).style.strokeDashoffset=264*(1-r/tot); $(idTxt).textContent=Math.ceil(r); }
+function cronometro(seg,idCirc,idTxt,fim){
+  clearInterval(tickId); restante=seg; total=seg; aoFim=fim; anel(idCirc,idTxt,restante,total);
+  tickId=setInterval(()=>{ if(pausado) return; restante-=.25;
+    if(Math.abs(restante-Math.round(restante))<.01 && restante<=3 && restante>0) AK.som('tique');
+    anel(idCirc,idTxt,Math.max(0,restante),total);
+    if(restante<=0){ clearInterval(tickId); AK.som('bip'); fim&&fim(); } },250);
+}
+function contagemPrep(texto,depois){
+  const pr=$('prep'); pr.hidden=false; let c=3;
+  const mostra=()=>{ pr.innerHTML=`<div>${c}<small>${texto}</small></div>`; AK.som('tique'); };
+  mostra();
+  const passo=()=>{ if(pausado){timers.push(setTimeout(passo,300));return;} c--; if(c>0){mostra();timers.push(setTimeout(passo,1000));} else {pr.hidden=true; depois();} };
+  timers.push(setTimeout(passo,1000));
+}
+
+/* ---------- Siga o Mestre ---------- */
+let lista=[], pos=0, modo='';
+function iniciarMestre(){
+  modo='mestre'; limpar(); pausado=false; lista=AK.embaralhar(MOV).slice(0,cfg.qtd); pos=0;
+  $('tituloEx').textContent=AK.t(T.mestre); $('controles').hidden=false; $('anel').style.display='';
+  AK.tela('exercicio'); proximoMestre();
+}
+function proximoMestre(){
+  if(pos>=lista.length){ fimMestre(); return; }
+  const m=lista[pos]; $('contaEx').textContent=(pos+1)+'/'+lista.length; mostrarMov(m);
+  AK.falar(AK.t(m.n)+'. '+AK.t(m.d));
+  anel('anelVai','anelTxt',cfg.tempo,cfg.tempo);
+  contagemPrep(AK.t(T.prepare),()=>cronometro(cfg.tempo,'anelVai','anelTxt',()=>{pos++;proximoMestre();}));
+}
+function fimMestre(){ limpar(); pararAnim();
+  AK.resultado({titulo:AK.t(T.fimMestre),estrelas:3,texto:AK.t(T.fimMestreTxt).replace('{N}',lista.length),
+    botoes:[{rotulo:AK.t(T.denovo),acao:iniciarMestre},{rotulo:AK.t(T.menu),classe:'sec',acao:voltarInicio}]}); }
+
+/* ---------- Memória do Corpo ---------- */
+let tam=2, falhas=0, melhor=0, seqMem=[];
+function iniciarMemoria(){ modo='memoria'; tam=2; falhas=0; melhor=0; rodadaMem(); }
+function rodadaMem(){
+  limpar(); pausado=false; seqMem=AK.embaralhar(MOV).slice(0,tam); pos=0;
+  $('tituloEx').textContent=AK.t(T.memorize); $('controles').hidden=true; $('anel').style.display='none';
+  AK.tela('exercicio'); AK.falar(AK.t(T.memorize));
+  timers.push(setTimeout(mostrarMem,900));
+}
+function mostrarMem(){
+  if(pos>=seqMem.length){ pararAnim(); vezMem(); return; }
+  const m=seqMem[pos]; $('contaEx').textContent=(pos+1)+'/'+seqMem.length; mostrarMov(m); AK.falar(AK.t(m.n)); AK.som('clique');
+  pos++; timers.push(setTimeout(mostrarMem,3200));
+}
+function vezMem(){
+  $('passosVez').innerHTML=seqMem.map((_,i)=>`<span>${i+1}</span>`).join('');
+  AK.tela('vez'); AK.falar(AK.t(T.suaVez)+' '+AK.t(T.facaOrdem));
+  cronometro(tam*6,'anelVez','txtVez',()=>{});
+}
+function conferirMem(){
+  clearInterval(tickId);
+  $('listaConf').innerHTML=seqMem.map((m,i)=>`<div><i>${m.e}</i>${AK.t(m.n)}<em>${i+1}</em></div>`).join('');
+  AK.tela('conferir');
+}
+function respostaMem(ok){
+  if(ok){ melhor=Math.max(melhor,tam); AK.som('ok'); AK.confete();
+    if(tam>=7){ fimMem(); return; } tam++; falhas=0; rodadaMem(); }
+  else { falhas++; if(falhas>=2){ fimMem(); return; } rodadaMem(); }
+}
+function fimMem(){ limpar(); pararAnim(); const est=melhor>=5?3:melhor>=3?2:1;
+  AK.resultado({titulo:AK.t(T.fimMem),estrelas:melhor?est:0,texto:AK.t(T.fimMemTxt).replace('{N}',melhor||0),
+    botoes:[{rotulo:AK.t(T.denovo),acao:iniciarMemoria},{rotulo:AK.t(T.menu),classe:'sec',acao:voltarInicio}]}); }
+
+/* ---------- Catálogo ---------- */
+function abrirCatalogo(){
+  $('gradeMov').innerHTML=MOV.map((m,i)=>`<button class="ak-cartao" data-i="${i}"><img class="mini" src="mov-${m.id}.webp" alt="" loading="lazy"><b>${AK.t(m.n)}</b><small>${AK.t(m.d)}</small></button>`).join('');
+  $('gradeMov').querySelectorAll('.ak-cartao').forEach(b=>b.onclick=()=>praticar(+b.dataset.i));
+  AK.tela('catalogo');
+}
+function praticar(i){ modo='pratica'; limpar(); const m=MOV[i];
+  $('tituloEx').textContent=AK.t(T.catalogo); $('contaEx').textContent=m.e; $('controles').hidden=true; $('anel').style.display='none';
+  AK.tela('exercicio'); mostrarMov(m); AK.falar(AK.t(m.n)+'. '+AK.t(m.d)); }
+
+/* ---------- Navegação ---------- */
+function voltarInicio(){ limpar(); pararAnim(); $('prep').hidden=true; modo=''; desenharOpcoes(); AK.tela('inicio'); }
+function desenharOpcoes(){
+  const liga=(id,chave,num)=>$(id).querySelectorAll('button').forEach(b=>{b.classList.toggle('on',+b.dataset.v===cfg[chave]);b.onclick=()=>{cfg[chave]=+b.dataset.v;salvo.gravar(cfg);AK.vozLigada=!!cfg.voz;desenharOpcoes();};});
+  liga('optTempo','tempo'); liga('optQtd','qtd'); liga('optVoz','voz'); AK.vozLigada=!!cfg.voz;
+}
+$('btMestre').onclick=iniciarMestre; $('btMemoria').onclick=iniciarMemoria; $('btCatalogo').onclick=abrirCatalogo;
+$('btConferir').onclick=conferirMem; $('btAcertou').onclick=()=>respostaMem(true); $('btErrou').onclick=()=>respostaMem(false);
+$('btPausa').onclick=()=>{ pausado=!pausado; $('btPausa').innerHTML=pausado?`▶ ${AK.t(T.continuar)}`:`⏸ ${AK.t(T.pausar)}`; if(pausado){pararAnim();}else{mostrarMov(lista[pos]);} };
+$('btPular').onclick=()=>{ if(modo!=='mestre') return; limpar(); $('prep').hidden=true; pausado=false; $('btPausa').innerHTML=`⏸ ${AK.t(T.pausar)}`; pos++; proximoMestre(); };
+document.querySelectorAll('[data-volta]').forEach(b=>b.onclick=()=>{ if(AK.telaAtual==='exercicio'&&modo==='pratica') abrirCatalogo(); else voltarInicio(); });
+AK.voltarInterno=()=>{ if(AK.telaAtual==='inicio') return false; if(AK.telaAtual==='exercicio'&&modo==='pratica') abrirCatalogo(); else voltarInicio(); return true; };
+desenharOpcoes(); AK.telaAtual='inicio';
+})();
+</script>
+</body>
+</html>

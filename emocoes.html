@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Que Emoção é Essa?</title>
+<script src="ajustes.js"></script>
+<link rel="stylesheet" href="ativamente-kit.css">
+<style>
+:root{--bg:#ffeef5;--bg2:#efe8ff;--pri:#e8508f;--pri-esc:#b8346c;--sec:#7c6fe0;--ink:#43213a;--muted:#8a6a80}
+.rosto{display:flex;justify-content:center;margin:4px 0 14px}
+.moldura{display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border-radius:28px;background:linear-gradient(160deg,#ffd9ea,#e4dbff);aspect-ratio:1/1}
+.moldura img{width:100%;height:auto;display:block}
+.rosto .moldura{width:min(64vw,270px);box-shadow:var(--sombra)}
+.faces .moldura{border-radius:18px}
+.rosto svg{width:min(66vw,280px);height:auto;max-height:38vh;filter:drop-shadow(0 12px 18px rgba(67,33,58,.18))}
+.opcoes{display:grid;gap:12px}
+.opcoes .ak-btn{min-height:70px;font-size:clamp(1.15rem,5vw,1.45rem)}
+.opcoes.trava button,.faces.trava button{pointer-events:none}
+.opcoes .ak-btn.mostra,.faces button.mostra{outline:6px solid var(--ok);outline-offset:3px}
+.faces{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.faces button{border:0;background:#fff;border-radius:22px;box-shadow:var(--sombra);padding:8px;cursor:pointer}
+.faces button svg{width:100%;height:auto;display:block}
+.cena{background:#fff;border-radius:26px;box-shadow:var(--sombra);padding:18px 16px;text-align:center;margin-bottom:14px}
+.cena .emo{font-size:clamp(4rem,20vw,6rem);line-height:1.1}
+.cena p{font-size:clamp(1.2rem,5vw,1.5rem);font-weight:900;margin-top:8px;line-height:1.3}
+.feedback{min-height:32px;text-align:center;font-weight:900;font-size:1.15rem;margin:0 0 8px}
+.feedback.ok{color:var(--ok)}.feedback.err{color:var(--err)}
+</style>
+</head>
+<body>
+
+<section class="tela on" id="inicio">
+  <div class="ak-capa">
+    <img class="ak-arte ak-arte-img" src="capa-emocoes.webp" alt="">
+    <h1 data-t="titulo">Que Emoção é Essa?</h1>
+    <p data-t="sub">Descubra o que cada um está sentindo</p>
+  </div>
+  <div class="ak-grade" id="modos"></div>
+</section>
+
+<section class="tela" id="jogo">
+  <div class="ak-topo">
+    <button class="ak-icone" id="btSair" aria-label="Menu">🏠</button>
+    <h2 id="nomeModo"></h2>
+    <button class="ak-icone" id="btOuvir" aria-label="Ouvir">🔊</button>
+  </div>
+  <div class="ak-barra"><i id="barra"></i></div>
+  <div class="ak-pergunta" id="pergunta"></div>
+  <div id="area"></div>
+  <div class="feedback" id="feedback"></div>
+</section>
+
+<script src="ativamente-kit.js"></script>
+<script>
+(function(){
+const T={
+  titulo:{pt:'Que Emoção é Essa?',en:'What Feeling Is It?',es:'¿Qué Emoción Es?'},
+  sub:{pt:'Descubra o que cada um está sentindo',en:'Find out what everyone is feeling',es:'Descubre lo que cada uno siente'},
+  p1:{pt:'Como esta criança está se sentindo?',en:'How is this child feeling?',es:'¿Cómo se siente este niño?'},
+  p2:{pt:'Qual criança está {A}?',en:'Which child is {A}?',es:'¿Qué niño está {A}?'},
+  p3:{pt:'Como você se sentiria?',en:'How would you feel?',es:'¿Cómo te sentirías?'},
+  certo:{pt:['Muito bem!','Isso mesmo!','Acertou!'],en:['Well done!','That\'s right!','Great!'],es:['¡Muy bien!','¡Eso es!','¡Correcto!']},
+  errado:{pt:'Esta é {N}.',en:'This one is {N}.',es:'Es {N}.'},
+  fim:{pt:'Muito bem!',en:'Well done!',es:'¡Muy bien!'},
+  fimTxt:{pt:'Você acertou {A} de {N}.',en:'You got {A} out of {N}.',es:'Acertaste {A} de {N}.'},
+  denovo:{pt:'Jogar de novo',en:'Play again',es:'Jugar de nuevo'},proximo:{pt:'Próximo jogo ➡',en:'Next game ➡',es:'Siguiente juego ➡'},menu:{pt:'Escolher jogo',en:'Choose game',es:'Elegir juego'}
+};
+const EMO={
+  alegria:{n:{pt:'Alegria',en:'Happy',es:'Alegría'},a:{pt:'feliz',en:'happy',es:'feliz'},art:{pt:'a alegria',en:'happy',es:'la alegría'}},
+  tristeza:{n:{pt:'Tristeza',en:'Sad',es:'Tristeza'},a:{pt:'triste',en:'sad',es:'triste'},art:{pt:'a tristeza',en:'sad',es:'la tristeza'}},
+  raiva:{n:{pt:'Raiva',en:'Angry',es:'Enojo'},a:{pt:'com raiva',en:'angry',es:'enojado'},art:{pt:'a raiva',en:'angry',es:'el enojo'}},
+  medo:{n:{pt:'Medo',en:'Scared',es:'Miedo'},a:{pt:'com medo',en:'scared',es:'asustado'},art:{pt:'o medo',en:'scared',es:'el miedo'}},
+  surpresa:{n:{pt:'Surpresa',en:'Surprised',es:'Sorpresa'},a:{pt:'surpresa',en:'surprised',es:'sorprendido'},art:{pt:'a surpresa',en:'surprised',es:'la sorpresa'}},
+  nojo:{n:{pt:'Nojo',en:'Disgusted',es:'Asco'},a:{pt:'com nojo',en:'disgusted',es:'con asco'},art:{pt:'o nojo',en:'disgusted',es:'el asco'}}
+};
+const LISTA=Object.keys(EMO);
+const PARECIDAS={alegria:['surpresa'],surpresa:['alegria','medo'],medo:['surpresa'],tristeza:['raiva'],raiva:['tristeza','nojo'],nojo:['raiva']};
+const CENAS=[
+ ['🎂','alegria',{pt:'Você ganhou um bolo de aniversário!',en:'You got a birthday cake!',es:'¡Te regalaron un pastel de cumpleaños!'}],
+ ['🍦','tristeza',{pt:'Seu sorvete caiu no chão.',en:'Your ice cream fell on the floor.',es:'Tu helado se cayó al suelo.'}],
+ ['🧱','raiva',{pt:'Alguém derrubou de propósito a torre que você montou.',en:'Someone knocked down your tower on purpose.',es:'Alguien tiró a propósito la torre que armaste.'}],
+ ['⛈️','medo',{pt:'Um trovão muito alto durante a noite.',en:'A very loud thunder in the night.',es:'Un trueno muy fuerte durante la noche.'}],
+ ['🎁','surpresa',{pt:'Você abriu a porta e todos gritaram: surpresa!',en:'You opened the door and everyone shouted: surprise!',es:'Abriste la puerta y todos gritaron: ¡sorpresa!'}],
+ ['🧦','nojo',{pt:'Você sentiu cheiro de meia suja.',en:'You smelled a dirty sock.',es:'Oliste un calcetín sucio.'}],
+ ['🐶','alegria',{pt:'Você brincou com um cachorrinho no parque.',en:'You played with a puppy at the park.',es:'Jugaste con un perrito en el parque.'}],
+ ['🎈','tristeza',{pt:'Seu balão saiu voando para longe.',en:'Your balloon flew far away.',es:'Tu globo se fue volando lejos.'}],
+ ['🧸','raiva',{pt:'Pegaram seu brinquedo sem pedir.',en:'Someone took your toy without asking.',es:'Tomaron tu juguete sin pedirlo.'}],
+ ['🕷️','medo',{pt:'Você viu uma aranha enorme na parede.',en:'You saw a huge spider on the wall.',es:'Viste una araña enorme en la pared.'}],
+ ['🎩','surpresa',{pt:'O mágico tirou um coelho da cartola!',en:'The magician pulled a rabbit out of a hat!',es:'¡El mago sacó un conejo del sombrero!'}],
+ ['🍎','nojo',{pt:'Você achou uma minhoca dentro da sua maçã.',en:'You found a worm inside your apple.',es:'Encontraste un gusano dentro de tu manzana.'}],
+ ['🏆','alegria',{pt:'Você ganhou uma medalha na corrida.',en:'You won a medal in the race.',es:'Ganaste una medalla en la carrera.'}],
+ ['🧳','tristeza',{pt:'Seu melhor amigo mudou para outra cidade.',en:'Your best friend moved to another city.',es:'Tu mejor amigo se mudó a otra ciudad.'}],
+ ['🌑','medo',{pt:'Você ficou sozinho num quarto escuro.',en:'You were alone in a dark room.',es:'Te quedaste solo en un cuarto oscuro.'}],
+ ['👟','nojo',{pt:'Você pisou num chiclete grudento.',en:'You stepped on sticky gum.',es:'Pisaste un chicle pegajoso.'}],
+ ['⏳','raiva',{pt:'Você esperou muito e alguém furou a fila.',en:'You waited a long time and someone cut in line.',es:'Esperaste mucho y alguien se coló en la fila.'}],
+ ['🎆','surpresa',{pt:'Fogos de artifício estouraram de repente no céu!',en:'Fireworks suddenly burst in the sky!',es:'¡Unos fuegos artificiales estallaron de repente en el cielo!'}]
+];
+const MODOS=[
+  {id:'qual',emo:'🤔',nome:{pt:'Qual é a emoção?',en:'Which feeling?',es:'¿Qué emoción es?'},desc:{pt:'Olhe o rosto',en:'Look at the face',es:'Mira la cara'}},
+  {id:'ache',emo:'🔍',nome:{pt:'Ache o rosto',en:'Find the face',es:'Encuentra la cara'},desc:{pt:'Escolha a criança certa',en:'Pick the right child',es:'Elige al niño correcto'}},
+  {id:'cena',emo:'💭',nome:{pt:'E se fosse você?',en:'What if it were you?',es:'¿Y si fueras tú?'},desc:{pt:'Situações do dia a dia',en:'Everyday situations',es:'Situaciones del día a día'}}
+];
+const PELES=['#f6d2b8','#eab48e','#c98b62','#9c6646','#6b4530'], CABELOS=['#3a2618','#7a4b24','#e3b448','#151515','#b8532c'];
+const RODADAS=10, salvo=AK.salvo('emocoes'); let prog=salvo.ler();
+AK.traduzir(T); document.title=AK.t(T.titulo);
+const $=id=>document.getElementById(id);
+
+/* ---------- Gerador de rostos ---------- */
+function rosto(emo,o){
+  o=o||{}; const pele=o.pele||AK.sortear(PELES), cab=o.cab||AK.sortear(CABELOS), est=o.est!=null?o.est:Math.floor(Math.random()*3);
+  let s='';
+  if(est===1) s+=`<path d="M30 100 Q24 190 60 196 L140 196 Q176 190 170 100Z" fill="${cab}"/>`; // cabelo longo atrás
+  s+=`<circle cx="30" cy="110" r="13" fill="${pele}"/><circle cx="170" cy="110" r="13" fill="${pele}"/>`;
+  s+=`<circle cx="100" cy="108" r="72" fill="${pele}"/>`;
+  if(emo==='raiva') s+=`<circle cx="100" cy="108" r="72" fill="#ff3b3b" opacity=".16"/>`;
+  if(emo==='nojo') s+=`<circle cx="100" cy="108" r="72" fill="#7bd36a" opacity=".16"/>`;
+  if(est===2) s+=[[44,56],[64,40],[88,34],[112,34],[136,40],[156,56],[30,78],[170,78]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="20" fill="${cab}"/>`).join('');
+  else s+=`<path d="M28 98 Q30 34 100 34 Q170 34 172 98 Q150 66 100 64 Q56 64 28 98Z" fill="${cab}"/>`;
+  // sobrancelhas: [y externo, y interno, curva]
+  const SB={alegria:[70,70,-6],tristeza:[76,62,2],raiva:[64,82,2],medo:[64,58,-3],surpresa:[58,58,-10],nojo:[80,74,0]};
+  const [yo,yi,cv]=SB[emo];
+  s+=`<path d="M58 ${yo} Q73 ${(yo+yi)/2+cv} 88 ${yi}" stroke="#3a2618" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+  const yo2=emo==='nojo'?62:yo, yi2=emo==='nojo'?66:yi;
+  s+=`<path d="M142 ${yo2} Q127 ${(yo2+yi2)/2+cv} 112 ${yi2}" stroke="#3a2618" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+  // olhos
+  const olho=(x)=>{
+    if(emo==='alegria') return `<path d="M${x-12} 100 Q${x} 86 ${x+12} 100" stroke="#2b2b2b" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+    if(emo==='medo') return `<circle cx="${x}" cy="96" r="13" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><circle cx="${x}" cy="97" r="4.5" fill="#2b2b2b"/>`;
+    if(emo==='surpresa') return `<circle cx="${x}" cy="96" r="12" fill="#fff" stroke="#2b2b2b" stroke-width="2"/><circle cx="${x}" cy="96" r="6.5" fill="#2b2b2b"/>`;
+    if(emo==='raiva') return `<ellipse cx="${x}" cy="99" rx="10" ry="6" fill="#2b2b2b"/>`;
+    if(emo==='tristeza') return `<ellipse cx="${x}" cy="101" rx="7" ry="8" fill="#2b2b2b"/><circle cx="${x+2}" cy="98" r="2" fill="#fff"/>`;
+    return `<path d="M${x-11} 99 L${x+11} 99" stroke="#2b2b2b" stroke-width="5" stroke-linecap="round"/>`; // nojo
+  };
+  s+=olho(73)+olho(127);
+  s+=`<path d="M97 112 Q100 122 104 114" stroke="${'#000'}" stroke-opacity=".25" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  if(emo==='nojo') s+=`<path d="M86 116 l6 -4 M114 116 l-6 -4" stroke="#000" stroke-opacity=".3" stroke-width="3" stroke-linecap="round"/>`;
+  // boca
+  const B={
+    alegria:`<path d="M68 132 Q100 172 132 132 Z" fill="#7a2335"/><path d="M74 134 L126 134 Q122 142 100 142 Q78 142 74 134Z" fill="#fff"/><path d="M86 152 Q100 160 114 152 Q100 146 86 152Z" fill="#ff7a8a"/>`,
+    tristeza:`<path d="M78 152 Q100 134 122 152" stroke="#7a2335" stroke-width="6" fill="none" stroke-linecap="round"/>`,
+    raiva:`<rect x="78" y="138" width="44" height="18" rx="7" fill="#7a2335"/><path d="M80 141 h40 M80 153 h40 M89 140 v15 M100 140 v15 M111 140 v15" stroke="#fff" stroke-width="3"/>`,
+    medo:`<path d="M80 152 Q86 136 100 140 Q114 136 120 152 Q110 160 100 156 Q90 160 80 152Z" fill="#7a2335"/>`,
+    surpresa:`<ellipse cx="100" cy="148" rx="12" ry="16" fill="#7a2335"/>`,
+    nojo:`<path d="M76 148 Q86 140 96 148 T118 144" stroke="#7a2335" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M100 150 q6 14 14 2" fill="#ff7a8a"/>`
+  };
+  s+=B[emo];
+  if(emo==='alegria') s+=`<circle cx="56" cy="126" r="10" fill="#ff7a9a" opacity=".45"/><circle cx="144" cy="126" r="10" fill="#ff7a9a" opacity=".45"/>`;
+  if(emo==='tristeza') s+=`<path d="M64 110 q-7 14 0 18 q7 -4 0 -18Z" fill="#5ab4ff"/>`;
+  if(emo==='medo') s+=`<path d="M156 66 q-8 14 0 18 q8 -4 0 -18Z" fill="#8fd3ff"/>`;
+  if(emo==='raiva') s+=`<path d="M150 46 l8 8 M158 46 l-8 8 M154 42 v4 M154 58 v-4" stroke="#ff3b3b" stroke-width="4" stroke-linecap="round"/>`;
+  return `<svg viewBox="0 0 200 210" role="img">${s}</svg>`;
+}
+
+
+// Rostos ilustrados: 3 crianças (A, B, C) × 6 emoções
+function foto(emo,p){ p=p||AK.sortear(['A','B','C']); return `<div class="moldura"><img src="emocao-${emo}-${p}.webp" alt="" draggable="false"></div>`; }
+function desenharInicio(){
+  $('modos').innerHTML=MODOS.map((m,i)=>`<button class="ak-cartao" data-i="${i}"><span class="num">${i+1}</span><span class="emo">${m.emo}</span><b>${AK.t(m.nome)}</b><small>${AK.t(m.desc)}</small><span>${AK.estrelasHTML(prog[m.id]||0)}</span></button>`).join('');
+  $('modos').querySelectorAll('.ak-cartao').forEach(b=>b.onclick=()=>iniciar(+b.dataset.i));
+}
+
+/* ---------- Rodadas ---------- */
+let modo=null, idxModo=0, rodada=0, acertos=0, erros=0, certo=null, fala='', ordemCenas=[];
+function opcoesPara(alvo,evitar){
+  const outros=AK.embaralhar(LISTA.filter(e=>e!==alvo&&!(evitar&&(PARECIDAS[alvo]||[]).includes(e)))).slice(0,2);
+  return AK.embaralhar([alvo,...outros]);
+}
+function novaRodada(){
+  $('feedback').textContent=''; $('feedback').className='feedback';
+  $('barra').style.width=(rodada/RODADAS*100)+'%';
+  let html='';
+  if(modo.id==='qual'){
+    certo=AK.sortear(LISTA); const ops=opcoesPara(certo,false);
+    html=`<div class="rosto">${foto(certo)}</div><div class="opcoes" id="ops">${ops.map(e=>`<button class="ak-btn" data-e="${e}">${AK.t(EMO[e].n)}</button>`).join('')}</div>`;
+    $('pergunta').textContent=fala=AK.t(T.p1);
+  }else if(modo.id==='ache'){
+    certo=AK.sortear(LISTA); const ops=opcoesPara(certo,false);
+    const pessoas=AK.embaralhar(['A','B','C']);
+    html=`<div class="faces" id="ops">${ops.map((e,i)=>`<button data-e="${e}" aria-label="${AK.t(EMO[e].n)}">${foto(e,pessoas[i])}</button>`).join('')}</div>`;
+    $('pergunta').textContent=fala=AK.t(T.p2).replace('{A}',AK.t(EMO[certo].a));
+  }else{
+    if(!ordemCenas.length) ordemCenas=AK.embaralhar(CENAS);
+    const [emo,alvo,txt]=ordemCenas.pop(); certo=alvo; const ops=opcoesPara(alvo,true);
+    html=`<div class="cena"><div class="emo">${emo}</div><p>${AK.t(txt)}</p></div><div class="opcoes" id="ops">${ops.map(e=>`<button class="ak-btn" data-e="${e}">${AK.t(EMO[e].n)}</button>`).join('')}</div>`;
+    $('pergunta').textContent=AK.t(T.p3); fala=AK.t(txt)+' '+AK.t(T.p3);
+  }
+  $('area').innerHTML=html;
+  $('ops').querySelectorAll('button').forEach(b=>b.onclick=()=>responder(b));
+  AK.falar(fala);
+}
+function responder(b){
+  const ops=$('ops'); ops.classList.add('trava');
+  if(b.dataset.e===certo){
+    acertos++; AK.som('ok'); AK.vibrar(20); b.classList.add('ak-certo');
+    $('feedback').textContent=AK.sortear(AK.t(T.certo)); $('feedback').className='feedback ok';
+    rodada++; setTimeout(proxima,900);
+  }else{
+    erros++; AK.som('erro'); AK.vibrar([40,40,40]); b.classList.add('ak-errado');
+    ops.querySelector(`[data-e="${certo}"]`).classList.add('mostra');
+    const txt=AK.t(T.errado).replace('{N}',AK.t(EMO[certo].art)); $('feedback').textContent=txt; $('feedback').className='feedback err'; AK.falar(txt);
+    rodada++; setTimeout(proxima,2200);
+  }
+}
+function proxima(){ if(rodada>=RODADAS) terminar(); else novaRodada(); }
+function iniciar(i){ idxModo=i; modo=MODOS[i]; rodada=0; acertos=0; erros=0; ordemCenas=[];
+  $('nomeModo').textContent=AK.t(modo.nome); AK.tela('jogo'); novaRodada(); }
+function terminar(){
+  $('barra').style.width='100%'; const est=erros<=1?3:erros<=3?2:1;
+  if(est>(prog[modo.id]||0)){prog[modo.id]=est;salvo.gravar(prog);}
+  const botoes=[]; if(idxModo<MODOS.length-1) botoes.push({rotulo:AK.t(T.proximo),acao:()=>iniciar(idxModo+1)});
+  botoes.push({rotulo:AK.t(T.denovo),classe:'sec',acao:()=>iniciar(idxModo)}); botoes.push({rotulo:AK.t(T.menu),classe:'sec',acao:voltarInicio});
+  AK.resultado({titulo:AK.t(T.fim),estrelas:est,texto:AK.t(T.fimTxt).replace('{A}',acertos).replace('{N}',RODADAS),botoes});
+}
+function voltarInicio(){ desenharInicio(); AK.tela('inicio'); }
+$('btSair').onclick=voltarInicio; $('btOuvir').onclick=()=>AK.falar(fala);
+AK.voltarInterno=()=>{ if(AK.telaAtual==='jogo'){voltarInicio();return true;} return false; };
+desenharInicio(); AK.telaAtual='inicio';
+})();
+</script>
+</body>
+</html>

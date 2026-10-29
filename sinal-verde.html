@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sinal Verde</title>
+<script src="ajustes.js"></script>
+<link rel="stylesheet" href="ativamente-kit.css">
+<style>
+:root{--bg:#1b2140;--bg2:#10142b;--card:#262d55;--ink:#f3f5ff;--muted:#aab2e0;--pri:#2fbf71;--pri-esc:#1f8a51;--sec:#ffb547;--sombra:0 10px 24px rgba(0,0,0,.35)}
+.ak-btn.sec{background:#323a6b;color:#fff;box-shadow:0 6px 0 #1b2147}
+.ak-seg button{background:#262d55;color:#dfe3ff}.ak-seg button.on{background:#323a6b;border-color:#2fbf71;color:#fff}
+.ak-modal-card{background:#262d55;color:#fff}.ak-modal-texto{color:#cfd5ff}
+.ak-dica{background:#3a3260;border-color:#ffb547;color:#ffe2a8}
+#jogo{height:100%}
+.regra{display:flex;align-items:center;justify-content:center;gap:12px;background:#262d55;border-radius:20px;padding:10px 14px;font-weight:900;font-size:clamp(1.05rem,4.6vw,1.35rem);text-align:center;margin-bottom:12px;min-height:64px}
+.regra.troca{animation:akPulso .5s 2}
+.area{flex:1;display:flex;align-items:center;justify-content:center;border-radius:32px;background:radial-gradient(circle at 50% 40%,#2b3364,#161b38);
+  position:relative;min-height:320px;cursor:pointer;overflow:hidden;box-shadow:inset 0 0 0 4px rgba(255,255,255,.04)}
+.semaforo{width:min(64vw,300px);height:min(64vw,300px);border-radius:50%;display:grid;place-items:center;font-size:min(30vw,150px);
+  background:#0d1027;box-shadow:inset 0 0 0 14px #20264d,0 20px 40px rgba(0,0,0,.4);transition:transform .08s}
+.semaforo.verde{background:url(luz-verde.webp) center/cover no-repeat;box-shadow:0 0 70px #39e27aaa}
+.semaforo.vermelho{background:url(luz-vermelha.webp) center/cover no-repeat;box-shadow:0 0 70px #ff3b3baa}
+.semaforo.bicho{background:radial-gradient(circle at 35% 30%,#fff,#e3e8ff);box-shadow:0 0 40px #ffffff55,inset 0 0 0 14px #c9d1ff}
+.semaforo.toque{transform:scale(.92)}
+.area.acerto{box-shadow:inset 0 0 0 8px #2fbf71}.area.erro{box-shadow:inset 0 0 0 8px #ef4b5f}
+.contagem{position:absolute;font-size:min(34vw,170px);font-weight:900;color:#fff;text-shadow:0 8px 30px rgba(0,0,0,.4)}
+.dedo{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:#aab2e0;font-weight:800}
+.tabela{display:grid;grid-template-columns:1fr auto;gap:8px 14px;text-align:left;background:#1f2548;border-radius:18px;padding:14px;margin-bottom:6px}
+.tabela b{color:#fff}
+.hist{display:grid;gap:10px}
+.hist div{background:#262d55;border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;font-weight:800;color:#dfe3ff;font-size:.95rem}
+.vazio{color:var(--muted);text-align:center;font-weight:800;padding:20px}
+</style>
+</head>
+<body>
+
+<section class="tela on" id="inicio">
+  <div class="ak-capa">
+    <img class="ak-arte ak-arte-img" src="capa-sinal-verde.webp" alt="">
+    <h1 data-t="titulo" style="color:#7ff0ad">Sinal Verde</h1>
+    <p data-t="sub">Toque só na hora certa. Segure o dedo no resto!</p>
+  </div>
+  <div class="ak-rotulo" data-t="velocidade">Velocidade</div>
+  <div class="ak-seg" id="vel"><button data-v="0" data-t="devagar">Devagar</button><button data-v="1" data-t="normal">Normal</button><button data-v="2" data-t="rapido">Rápido</button></div>
+  <div class="ak-rotulo" data-t="fases">Fases</div>
+  <div class="ak-grade" id="fases"></div>
+  <div style="margin-top:16px"><button class="ak-btn sec" id="btHist">📊 <span data-t="historico">Histórico</span></button></div>
+</section>
+
+<section class="tela" id="jogo">
+  <div class="ak-topo">
+    <button class="ak-icone" id="btSair" aria-label="Menu" style="background:#262d55">🏠</button>
+    <h2 id="nomeFase"></h2>
+    <div class="ak-placar" id="placar" style="background:#262d55">0</div>
+  </div>
+  <div class="ak-barra" style="background:#262d55"><i id="barra"></i></div>
+  <div class="regra" id="regra"></div>
+  <div class="area" id="area"><div class="semaforo" id="sem"></div><div class="contagem" id="cont"></div><div class="dedo" data-t="toqueAqui">Toque em qualquer lugar desta área</div></div>
+</section>
+
+<section class="tela" id="historico">
+  <div class="ak-topo">
+    <button class="ak-icone" id="btVoltarH" aria-label="Voltar" style="background:#262d55">←</button>
+    <h2 data-t="historico">Histórico</h2>
+  </div>
+  <p class="ak-dica" data-t="histDica">Acompanhe a evolução: precisão, toques por impulso e tempo de reação.</p>
+  <div class="hist" id="listaHist"></div>
+</section>
+
+<script src="ativamente-kit.js"></script>
+<script>
+(function(){
+const T={
+  titulo:{pt:'Sinal Verde',en:'Green Light',es:'Luz Verde'},
+  sub:{pt:'Toque só na hora certa. Segure o dedo no resto!',en:'Tap only at the right time. Hold back the rest!',es:'Toca solo en el momento justo. ¡Aguanta el resto!'},
+  velocidade:{pt:'Velocidade',en:'Speed',es:'Velocidad'},devagar:{pt:'Devagar',en:'Slow',es:'Lento'},normal:{pt:'Normal',en:'Normal',es:'Normal'},rapido:{pt:'Rápido',en:'Fast',es:'Rápido'},
+  fases:{pt:'Fases',en:'Levels',es:'Niveles'},historico:{pt:'Histórico',en:'History',es:'Historial'},
+  toqueAqui:{pt:'Toque em qualquer lugar desta área',en:'Tap anywhere in this area',es:'Toca en cualquier lugar de esta zona'},
+  histDica:{pt:'Acompanhe a evolução: precisão, toques por impulso e tempo de reação.',en:'Track progress: accuracy, impulsive taps and reaction time.',es:'Sigue la evolución: precisión, toques por impulso y tiempo de reacción.'},
+  rVerde:{pt:'Toque no 🟢 VERDE. No 🔴 vermelho, não toque!',en:'Tap on 🟢 GREEN. Don\'t tap on 🔴 red!',es:'Toca en 🟢 VERDE. ¡En 🔴 rojo no toques!'},
+  rBicho:{pt:'Toque só quando aparecer o {B}!',en:'Tap only when the {B} shows up!',es:'¡Toca solo cuando aparezca el {B}!'},
+  rTroca:{pt:'Agora é ao contrário: toque no 🔴 VERMELHO!',en:'Now it\'s the opposite: tap on 🔴 RED!',es:'¡Ahora al revés: toca en 🔴 ROJO!'},
+  rMuda:{pt:'Atenção! A regra vai mudar durante o jogo',en:'Watch out! The rule will change during the game',es:'¡Atención! La regla cambiará durante el juego'},
+  agoraVerde:{pt:'AGORA: toque no 🟢 VERDE',en:'NOW: tap on 🟢 GREEN',es:'AHORA: toca en 🟢 VERDE'},
+  agoraVermelho:{pt:'AGORA: toque no 🔴 VERMELHO',en:'NOW: tap on 🔴 RED',es:'AHORA: toca en 🔴 ROJO'},
+  fim:{pt:'Fim da fase!',en:'Level finished!',es:'¡Fin del nivel!'},
+  acertos:{pt:'Toques certos',en:'Correct taps',es:'Toques correctos'},
+  impulso:{pt:'Toques por impulso',en:'Impulsive taps',es:'Toques por impulso'},
+  esquecidos:{pt:'Esquecidos',en:'Missed',es:'Olvidados'},
+  reacao:{pt:'Tempo médio de reação',en:'Average reaction time',es:'Tiempo medio de reacción'},
+  precisao:{pt:'Precisão',en:'Accuracy',es:'Precisión'},
+  denovo:{pt:'Jogar de novo',en:'Play again',es:'Jugar de nuevo'},
+  proxima:{pt:'Próxima fase ➡',en:'Next level ➡',es:'Siguiente nivel ➡'},
+  menu:{pt:'Escolher fase',en:'Choose level',es:'Elegir nivel'},
+  vazio:{pt:'Ainda não há partidas registradas.',en:'No games recorded yet.',es:'Todavía no hay partidas registradas.'}
+};
+const BICHOS=[{e:'🐶',pt:'cachorro',en:'dog',es:'perro'},{e:'🐱',pt:'gato',en:'cat',es:'gato'},{e:'🐰',pt:'coelho',en:'rabbit',es:'conejo'},{e:'🐸',pt:'sapo',en:'frog',es:'rana'},{e:'🐵',pt:'macaco',en:'monkey',es:'mono'},{e:'🐷',pt:'porquinho',en:'pig',es:'cerdito'}];
+const FASES=[
+  {id:'verde',emo:'🟢',nome:{pt:'Siga o verde',en:'Follow green',es:'Sigue el verde'},desc:{pt:'Verde toca, vermelho para',en:'Green tap, red stop',es:'Verde toca, rojo para'},n:20},
+  {id:'bicho',emo:'🐶',nome:{pt:'Caça ao bicho',en:'Animal hunt',es:'Caza del animal'},desc:{pt:'Só um bicho vale',en:'Only one animal counts',es:'Solo vale un animal'},n:20},
+  {id:'troca',emo:'🔴',nome:{pt:'Ao contrário',en:'Opposite',es:'Al revés'},desc:{pt:'Agora vale o vermelho',en:'Now red counts',es:'Ahora vale el rojo'},n:20},
+  {id:'muda',emo:'🔀',nome:{pt:'Regra maluca',en:'Crazy rule',es:'Regla loca'},desc:{pt:'A regra muda no meio',en:'The rule changes midway',es:'La regla cambia a mitad'},n:24}
+];
+const TEMPO=[[1600,900,1500],[1150,700,1200],[850,550,950]]; // [exibição, pausa mínima, pausa extra]
+const salvo=AK.salvo('sinal-verde'); let prog=salvo.ler(); if(prog.vel==null) prog.vel=1; prog.est=prog.est||{}; prog.hist=prog.hist||[];
+AK.traduzir(T); document.title=AK.t(T.titulo);
+const $=id=>document.getElementById(id);
+
+function desenharInicio(){
+  $('fases').innerHTML=FASES.map((f,i)=>`<button class="ak-cartao" data-i="${i}" style="background:#262d55;color:#fff"><span class="num">${i+1}</span><span class="emo">${f.emo}</span><b>${AK.t(f.nome)}</b><small style="color:#aab2e0">${AK.t(f.desc)}</small><span>${AK.estrelasHTML(prog.est[f.id]||0)}</span></button>`).join('');
+  $('fases').querySelectorAll('.ak-cartao').forEach(b=>b.onclick=()=>iniciar(+b.dataset.i));
+  $('vel').querySelectorAll('button').forEach(b=>{b.classList.toggle('on',+b.dataset.v===prog.vel);b.onclick=()=>{prog.vel=+b.dataset.v;salvo.gravar(prog);desenharInicio();};});
+}
+
+/* ---------- Partida ---------- */
+let fase=null, idxFase=0, seq=[], pos=0, estim=null, inicioEst=0, podeTocar=false, tocou=false, timers=[], regraVermelho=false, alvo=null;
+let res={hits:0,go:0,imp:0,omi:0,rts:[]};
+function limpar(){ timers.forEach(clearTimeout); timers=[]; }
+function depois(ms,f){ timers.push(setTimeout(f,ms)); }
+
+function montarSequencia(){
+  const n=fase.n, goN=Math.round(n*.65), s=[];
+  for(let i=0;i<n;i++) s.push(i<goN);
+  let seqv=AK.embaralhar(s);
+  return seqv.map(go=>{
+    if(fase.id==='bicho') return {go, tipo:'bicho', e: go?alvo.e:AK.sortear(BICHOS.filter(b=>b!==alvo)).e};
+    return {go, tipo:'cor'};
+  });
+}
+function iniciar(i){
+  limpar(); idxFase=i; fase=FASES[i]; pos=0; regraVermelho=fase.id==='troca'; alvo=AK.sortear(BICHOS);
+  res={hits:0,go:0,imp:0,omi:0,rts:[]}; seq=montarSequencia();
+  $('nomeFase').textContent=AK.t(fase.nome); $('placar').textContent='0'; $('barra').style.width='0';
+  $('sem').className='semaforo'; $('sem').textContent='';
+  let regra = fase.id==='verde'?AK.t(T.rVerde): fase.id==='bicho'?AK.t(T.rBicho).replace('{B}',alvo.e+' '+alvo[AK.lang]): fase.id==='troca'?AK.t(T.rTroca):AK.t(T.rMuda);
+  $('regra').textContent=regra; AK.tela('jogo'); AK.falar(regra.replace(/[^\p{L}\p{N}\s!.,:]/gu,''));
+  let c=3; $('cont').textContent=c;
+  const tique=()=>{ c--; if(c>0){$('cont').textContent=c;AK.som('tique');depois(900,tique);} else {$('cont').textContent='';AK.som('bip'); if(fase.id==='muda') mudarRegra(false); depois(500,proximo);} };
+  depois(1600,tique);
+}
+function mudarRegra(trocar){
+  if(trocar) regraVermelho=!regraVermelho;
+  $('regra').textContent=AK.t(regraVermelho?T.agoraVermelho:T.agoraVerde);
+  $('regra').classList.remove('troca'); void $('regra').offsetWidth; $('regra').classList.add('troca');
+  if(trocar){AK.som('bip');AK.falar(AK.t(regraVermelho?T.agoraVermelho:T.agoraVerde).replace(/[^\p{L}\p{N}\s!.,:]/gu,''));}
+}
+function proximo(){
+  if(pos>=seq.length){ terminar(); return; }
+  if(fase.id==='muda' && pos>0 && pos%8===0){ mudarRegra(true); depois(1800,mostrar); return; }
+  mostrar();
+}
+function mostrar(){
+  estim=seq[pos]; tocou=false; podeTocar=true; inicioEst=performance.now();
+  const s=$('sem');
+  if(estim.tipo==='bicho'){ s.className='semaforo bicho'; s.textContent=estim.e; }
+  else{
+    // em "troca" e "muda" com regra vermelha, o estímulo-alvo é o vermelho
+    const corAlvo = regraVermelho?'vermelho':'verde', outra = regraVermelho?'verde':'vermelho';
+    s.className='semaforo '+(estim.go?corAlvo:outra); s.textContent='';
+  }
+  if(estim.go) res.go++;
+  const [exib,pmin,pext]=TEMPO[prog.vel];
+  depois(exib,()=>{
+    podeTocar=false; if(estim.go && !tocou) res.omi++;
+    s.className='semaforo'; s.textContent=''; pos++; $('barra').style.width=(pos/seq.length*100)+'%';
+    depois(pmin+Math.random()*pext,proximo);
+  });
+}
+function tocar(){
+  if(AK.telaAtual!=='jogo'||!estim) return;
+  $('sem').classList.add('toque'); setTimeout(()=>$('sem').classList.remove('toque'),90);
+  if(!podeTocar||tocou) return;
+  tocou=true; const a=$('area');
+  if(estim.go){ res.hits++; res.rts.push(performance.now()-inicioEst); AK.som('ok'); AK.vibrar(15); a.classList.add('acerto'); }
+  else { res.imp++; AK.som('erro'); AK.vibrar([50,40,50]); a.classList.add('erro'); }
+  $('placar').textContent=res.hits; setTimeout(()=>a.classList.remove('acerto','erro'),250);
+}
+$('area').addEventListener('pointerdown',e=>{e.preventDefault();tocar();});
+
+function terminar(){
+  limpar(); estim=null;
+  const total=seq.length, nogo=total-res.go, corretos=res.hits+(nogo-res.imp);
+  const prec=Math.round(corretos/total*100), rt=res.rts.length?Math.round(res.rts.reduce((a,b)=>a+b,0)/res.rts.length):0;
+  const est=prec>=90?3:prec>=75?2:1;
+  if(est>(prog.est[fase.id]||0)) prog.est[fase.id]=est;
+  prog.hist.unshift({d:Date.now(),f:fase.id,v:prog.vel,p:prec,i:res.imp,o:res.omi,r:rt}); prog.hist=prog.hist.slice(0,30); salvo.gravar(prog);
+  const tab=`<div class="tabela"><span>✅ ${AK.t(T.acertos)}</span><b>${res.hits}/${res.go}</b><span>⚡ ${AK.t(T.impulso)}</span><b>${res.imp}</b><span>💤 ${AK.t(T.esquecidos)}</span><b>${res.omi}</b><span>⏱ ${AK.t(T.reacao)}</span><b>${rt?(rt/1000).toFixed(2)+' s':'—'}</b><span>🎯 ${AK.t(T.precisao)}</span><b>${prec}%</b></div>`;
+  const botoes=[];
+  if(idxFase<FASES.length-1) botoes.push({rotulo:AK.t(T.proxima),acao:()=>iniciar(idxFase+1)});
+  botoes.push({rotulo:AK.t(T.denovo),classe:'sec',acao:()=>iniciar(idxFase)});
+  botoes.push({rotulo:AK.t(T.menu),classe:'sec',acao:voltarInicio});
+  AK.resultado({titulo:AK.t(T.fim),estrelas:est,texto:tab,botoes});
+}
+function voltarInicio(){ limpar(); estim=null; $('cont').textContent=''; desenharInicio(); AK.tela('inicio'); }
+function mostrarHistorico(){
+  const nomes=Object.fromEntries(FASES.map(f=>[f.id,f.emo+' '+AK.t(f.nome)])), vel=[T.devagar,T.normal,T.rapido];
+  $('listaHist').innerHTML=prog.hist.length?prog.hist.map(h=>`<div><span>${new Date(h.d).toLocaleDateString(document.documentElement.lang,{day:'2-digit',month:'2-digit'})} · ${nomes[h.f]||''}<br><small style="color:#aab2e0">${AK.t(vel[h.v])}</small></span><span style="text-align:right">🎯 ${h.p}% · ⚡ ${h.i}<br><small style="color:#aab2e0">⏱ ${h.r?(h.r/1000).toFixed(2)+'s':'—'} · 💤 ${h.o}</small></span></div>`).join(''):`<p class="vazio">${AK.t(T.vazio)}</p>`;
+  AK.tela('historico');
+}
+$('btSair').onclick=voltarInicio; $('btHist').onclick=mostrarHistorico; $('btVoltarH').onclick=voltarInicio;
+AK.voltarInterno=()=>{ if(AK.telaAtual!=='inicio'){voltarInicio();return true;} return false; };
+desenharInicio(); AK.telaAtual='inicio';
+})();
+</script>
+</body>
+</html>
