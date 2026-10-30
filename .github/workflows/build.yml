@@ -102,6 +102,41 @@ jobs:
           rm -f release.keystore apk-alinhado.apk
           ls -la saida
 
+      - name: Versão Amazon (paga no download, tudo liberado, sem Google Play Faturamento)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          VERSAO="${{ steps.assinar.outputs.versao }}"
+          # 1) o app passa a se identificar como versão Amazon
+          printf "window.ATIVAMENTE_LOJA = 'amazon';\n" > www/loja.js
+          # 2) tira o plugin de compras da Google e a permissão de cobrança
+          npm uninstall @capgo/native-purchases
+          npx cap sync android
+          sed -i '/com.android.vending.BILLING/d' android/app/src/main/AndroidManifest.xml
+          # 3) compila
+          cd android && ./gradlew clean assembleRelease && cd ..
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          APK=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          # 4) confere: não pode ter a permissão de cobrança da Google
+          if "$BT/aapt" dump permissions "$APK" | grep -q "com.android.vending.BILLING"; then
+            echo "::error::O APK da Amazon ainda tem a permissão BILLING da Google"; exit 1
+          fi
+          unzip -p "$APK" assets/public/loja.js | grep -q "amazon" || { echo "::error::loja.js não está marcado como Amazon"; exit 1; }
+          # 5) assina
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "::warning::Sem assinatura: APK da Amazon não gerado."; exit 0; fi
+          echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+          "$BT/zipalign" -p -f 4 "$APK" amazon-alinhado.apk
+          "$BT/apksigner" sign --ks release.keystore \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" --key-pass "pass:$KEY_PASSWORD" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --out "saida/Ativamente-$VERSAO-Amazon.apk" amazon-alinhado.apk
+          "$BT/apksigner" verify "saida/Ativamente-$VERSAO-Amazon.apk"
+          rm -f release.keystore amazon-alinhado.apk
+          ls -la saida
+
       - name: Disponibilizar para download (aba Actions)
         uses: actions/upload-artifact@v4
         with:
@@ -115,6 +150,7 @@ jobs:
           tag_name: v${{ steps.assinar.outputs.versao }}
           name: Ativamente ${{ steps.assinar.outputs.versao }}
           body: |
-            APK: instalar direto no celular para testar.
-            AAB: enviar na Play Console (teste fechado ou produção).
+            APK: instalar direto no celular para testar (versão Google Play, com teste grátis e compra).
+            AAB: enviar na Play Console (teste ou produção).
+            Amazon.apk: enviar na Amazon Appstore (versão paga, tudo liberado, sem compras da Google).
           files: saida/*

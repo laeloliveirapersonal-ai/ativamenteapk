@@ -3,7 +3,7 @@
 // Offline + atualização automática
 // ==========================================
 
-const CACHE = 'ativamente-pastel-v31';
+const CACHE = 'ativamente-pastel-v32';
 
 const ARQUIVOS = [
   "./",
@@ -18,6 +18,7 @@ const ARQUIVOS = [
   "./lateralidade.html",
   "./siga-o-traco.html",
   "./labirinto.html",
+  "./loja.js",
   "./desbloqueio.js",
   "./capa-labirinto.webp",
   "./sinal-verde.html",

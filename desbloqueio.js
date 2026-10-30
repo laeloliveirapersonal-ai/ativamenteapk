@@ -58,7 +58,8 @@
   function diaNum(d) { return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); }
   if (!ler(K_INICIO)) gravar(K_INICIO, String(diaNum(new Date())));
 
-  function pago() { return ler(K_PAGO) === '1'; }
+  var AMAZON = window.ATIVAMENTE_LOJA === 'amazon'; // versão Amazon: paga no download, tudo liberado
+  function pago() { return AMAZON || ler(K_PAGO) === '1'; }
   function diasRestantes() {
     var ini = parseInt(ler(K_INICIO), 10), agora = diaNum(new Date());
     if (isNaN(ini) || agora < ini) return 0; // relógio voltou para trás: sem teste
@@ -79,7 +80,7 @@
   var cap = window.Capacitor;
   var nativo = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
   var loja = null;
-  if (nativo) {
+  if (nativo && !AMAZON) {
     try { loja = (cap.Plugins && cap.Plugins.NativePurchases) || (cap.registerPlugin && cap.registerPlugin('NativePurchases')) || null; }
     catch (e) { loja = null; }
   }
@@ -208,6 +209,7 @@
   function banner() {
     var lista = document.getElementById('lista'); if (!lista) return;
     var el = document.getElementById('desbBanner');
+    if (AMAZON) { if (el) el.remove(); return; }
     if (!el) { el = document.createElement('div'); el.id = 'desbBanner'; lista.parentNode.insertBefore(el, lista); }
     if (pago()) { el.className = 'desb-banner ok'; el.innerHTML = '<div class="txt">' + t('Todos os jogos desbloqueados ✓') + '</div>'; return; }
     var d = diasRestantes(), txt, sub;
