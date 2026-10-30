@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const OUT = 'www';
 const EXT = ['.html', '.css', '.png', '.webp', '.json', '.js', '.woff2'];
 const EXTRA = ['NOTICE-palavras.txt'];
-const SKIP = ['package.json', 'package-lock.json', 'capacitor.config.json'];
+const SKIP = ['package.json', 'package-lock.json', 'capacitor.config.json', 'politica-privacidade.html'];
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT);
 let n = 0;
