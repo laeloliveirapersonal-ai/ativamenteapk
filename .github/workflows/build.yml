@@ -36,6 +36,9 @@ jobs:
       - name: Copiar arquivos web para www
         run: npm run build:www
 
+      - name: Embutir fontes no app (sem conexões externas)
+        run: node scripts/embutir-fontes.js
+
       - name: Criar projeto Android (Capacitor)
         run: |
           npx cap add android
@@ -112,6 +115,8 @@ jobs:
           VERSAO="${{ steps.assinar.outputs.versao }}"
           # 1) o app passa a se identificar como versão Amazon
           printf "window.ATIVAMENTE_LOJA = 'amazon';\n" > www/loja.js
+          # sem links para outra loja (política da Amazon)
+          sed -i 's#https://play.google.com/store/apps/details?id=com.damas.ativamente##' www/desbloqueio.js
           # 2) tira o plugin de compras da Google e a permissão de cobrança
           npm uninstall @capgo/native-purchases
           npx cap sync android
@@ -125,6 +130,11 @@ jobs:
             echo "::error::O APK da Amazon ainda tem a permissão BILLING da Google"; exit 1
           fi
           unzip -p "$APK" assets/public/loja.js | grep -q "amazon" || { echo "::error::loja.js não está marcado como Amazon"; exit 1; }
+          if unzip -p "$APK" 'assets/public/*' | grep -qE "fonts\.(googleapis|gstatic)\.com"; then echo "::error::O APK da Amazon ainda busca fontes na internet"; exit 1; fi
+          if unzip -p "$APK" 'assets/public/*' | grep -q "play.google.com"; then echo "::error::O APK da Amazon ainda tem link para a Google Play"; exit 1; fi
+          # não pode ter bibliotecas de anúncio nem identificador de publicidade
+          if unzip -p "$APK" 'classes*.dex' | grep -aqE "com/google/android/gms/ads|AdvertisingIdClient|com/facebook/ads|com/unity3d/ads|com/applovin"; then echo "::error::Biblioteca de anúncio encontrada no APK da Amazon"; exit 1; fi
+          if "$BT/aapt" dump permissions "$APK" | grep -q "AD_ID"; then echo "::error::Permissão AD_ID no APK da Amazon"; exit 1; fi
           # 5) assina
           if [ -z "$KEYSTORE_BASE64" ]; then echo "::warning::Sem assinatura: APK da Amazon não gerado."; exit 0; fi
           echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
