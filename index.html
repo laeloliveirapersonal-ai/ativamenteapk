@@ -537,6 +537,15 @@ const JOGOS = [
     tags: 'emoções sentimentos rosto atenção social',
     arquivo: 'emocoes.html',
     logo: 'capa-emocoes.webp'
+  },
+{
+    id: 'exploradores',
+    nome: 'Exploradores da Mente',
+    desc: 'As aventuras do Caio: 22 jogos por edição',
+    tags: 'caio exploradores memória atenção lateralidade raciocínio coordenadas edições clube',
+    arquivo: 'exploradores.html',
+    logo: 'capa-exploradores.webp',
+    idiomas: ['pt'] // jogo só em português por enquanto
   }
 ];
 
@@ -751,6 +760,7 @@ if('serviceWorker' in navigator) {
 
 <script src="loja.js"></script>
 <script src="desbloqueio.js"></script>
+<script src="clube.js"></script>
 <script id="ativamente-parent-back-navigation">
 (function () {
   window.addEventListener('message', function (event) {

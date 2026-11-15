@@ -8,7 +8,7 @@
 (function () {
   'use strict';
   var PRODUTO = 'desbloqueio_completo';
-  var GRATIS = ['memoria-ativa', 'cores-setas', 'quebra-cabeca', 'lateralidade'];
+  var GRATIS = ['memoria-ativa', 'cores-setas', 'quebra-cabeca', 'lateralidade', 'exploradores']; // exploradores: 1ª edição grátis; as outras são do Clube do Caio (clube.js)
   var DIAS_TESTE = 3;
   var LOJA = 'https://play.google.com/store/apps/details?id=com.damas.ativamente';
   var K_PAGO = 'ativamente-desbloqueio', K_INICIO = 'ativamente-inicio', K_VEZES = 'ativamente-vezes';
